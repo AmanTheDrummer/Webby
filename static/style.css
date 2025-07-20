@@ -1,0 +1,59 @@
+body {
+    background-color: rgb(25, 49, 49);
+}
+
+/* ====== */
+/* NAVBAR */
+/* ====== */
+
+.nav-style {
+    background-color: rgb(20, 41, 41) !important;
+}
+
+/* ============ */
+/* MAIN SECTION */
+/* ============ */
+
+.form-control {
+    background-color: darkslategray !important;
+    border-color: darkslategray !important;
+    border-radius: 0%;
+}
+
+.chat-box {
+    background: #253d3d;
+    width: 100%;
+    height: 500px;
+    overflow-y: auto;
+}
+
+.form-control::placeholder {
+    color: rgb(224, 224, 224);
+}
+
+#button-addon2 {
+    color: rgb(224, 224, 224) !important;
+}
+
+.form-control:focus {
+    border-color: darkslategray;
+    box-shadow: 0 0 0 0.2rem rgba(47, 79, 79, 0.25);
+}
+
+.user-message {
+    text-align: right;
+    color: #fff;
+    margin: 5px 0;
+    background-color: rgb(99, 99, 99);
+    border-radius: 30px;
+    padding: 10px;
+}
+
+.bot-message {
+    text-align: left;
+    color: #fff;
+    margin: 5px 0;
+    background-color: rgb(99, 99, 99);
+    border-radius: 30px;
+    padding: 10px;
+}
