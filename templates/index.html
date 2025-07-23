@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Webby AI</title>
+    <title>Home | Webby AI</title>
 
     <!-- Bootstrap CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -30,7 +30,18 @@
                             <a class="nav-link active" aria-current="page" href="#">Home</a>
                         </li>
                         <li>
-                            <button id="restartBtn" class="mx-2 mt-1" sandbox="allow-scripts allow-same-origin">Restart</button>
+                            <button id="restartBtn" class="mx-2 mt-1"
+                                sandbox="allow-scripts allow-same-origin">Restart</button>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                {{ session.get('username', 'Guest') }}
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#">Profile</a></li>
+                                <li><a class="dropdown-item" href='/logout'>Log out</a></li>
+                            </ul>
                         </li>
                     </ul>
                 </div>
@@ -55,7 +66,8 @@
                 </div>
                 <div class="col-6">
                     <!-- Fixed iframe path to match Flask route -->
-                    <iframe src="/backend/generated_sites/website.html" id="resultFrame" style="width:100%; height:530px; border:1px solid #3f3e3e;"></iframe>
+                    <iframe src="/backend/generated_sites/website.html" id="resultFrame"
+                        style="width:100%; height:530px; border:1px solid #3f3e3e;"></iframe>
                 </div>
 
             </div>
