@@ -18,8 +18,6 @@ QUESTIONS = [
 ]
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-OUTPUT_DIR = "backend/generated_sites"
-os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # Database connection function - creates fresh connection each time
 def get_db_connection():
@@ -226,12 +224,6 @@ def chat():
             site_name = session['chat_answers'].get('site_name', 'untitled')
             html_code = gemini_response
             
-            # Save to file
-            filename = f"{OUTPUT_DIR}/website_{user_id}.html"
-            with open(filename, "w", encoding="utf-8") as f:
-                f.write(html_code)
-            print(f"[SUCCESS] Website generated and saved to {filename}")
-
             # Save to database
             try:
                 conn = get_db_connection()
