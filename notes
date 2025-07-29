@@ -1,0 +1,149 @@
+Okay so far we have got a basic structure, we have not yet connected any API. 
+
+WHY?
+    - GPT or Claude can code the HTML and CSS. But can not graphically show or host the site
+    - We need a hosting API such as netlify or Github Actions
+    - In order to generate images or svg, we need something like DALL-E or MidJourney
+
+We will be using Google Gemini free tier API for generating code.
+We will use netlify API for hosting. (also free)
+
+Workflow (AI code) (1 API call made to AI per website) = 
+
+ask the hardcoded questions --> gather info on type of website --> compile a prompt to send to LLM via API --> recieve html and css code for the website --> deploy the website code on netlify using the netlify API. 
+
+PROMPT
+make me a website, the name of my brand is informia, the theme is dark colours, the vibe is fun and the purpose is a portfolio website for the brand. make me a frontend page theme using html css as a template to use
+
+GEMINI API KEY
+AIzaSyDEMCfPVFCcQuwB1Q8ysLh0AF2pcX0caZA
+
+SupaBase
+postgresql://postgres:[YOUR-PASSWORD]@db.bwbhmlrzygaxcdllmrfb.supabase.co:5432/postgres
+
+Neon DB
+postgresql://neondb_owner:npg_GJuVnoSz02qH@ep-steep-feather-a1k2ram2-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+
+conn = psycopg2.connect(
+    host='ep-steep-feather-a1k2ram2-pooler.ap-southeast-1.aws.neon.tech',
+    port=5432,
+    dbname='neondb',
+    user='neondb_owner',
+    password='npg_GJuVnoSz02qH',
+    sslmode='require'
+)
+
+- Drag n Drop (next)
+- Scraper (next)
+- Email thrower
+- Inhouse data
+
+1) SCRAPER
+    It is not just a web scraper, it is also a web crawler WHICH scrapes data from sites. Although a model can be made, the implementation on a large scale level will need high computational power and a database which can store data from all sites scraped.
+    The other issue is the legality of the situation, not all websites allow scraping and most websites also only allow crawling to some extent (enough for them to be indexed by browsers)
+
+2) Drag n Drop feature.
+    - svg for logos & icons
+    - png for images
+
+23rd july:
+    Now we need to make a relational database to store all the websites on account creates and displays the latest one. 
+    Once that is done we will create a better UI and start RAG and Prompt engineering.
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home | Webby AI</title>
+
+    <!-- Bootstrap CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+
+    <!-- CSS link - Fixed path -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <header>
+        <!-- Navbar Section -->
+        <nav class="navbar navbar-expand-lg bg-body-tertiary nav-style" data-bs-theme="dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">Webby</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="#">Home</a>
+                        </li>
+                        <li>
+                            <button id="restartBtn" class="mx-2 mt-1"
+                                sandbox="allow-scripts allow-same-origin">Restart</button>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                {{ session.get('username', 'Guest') }}
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#">Profile</a></li>
+                                <li><a class="dropdown-item" href='/logout'>Log out</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="main-section container-fluid m-0 p-0">
+            <div class="m-0 d-flex flex-row">
+                <div class="col-3 m-0">
+                    <div class="chat-box p-4 m-0">
+
+                    </div>
+                    <form id="chat-form" class="p-0 m-0 m-0">
+                        <div class="input-group flex-wrap chat-box-input">
+                            <input type="text" class="form-control  text-light" placeholder="Enter a prompt..."
+                                required>
+                            <button class="btn rounded-0" type="submit">Send</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-9">
+                    <div class="overflow-hidden">
+                        <!-- Fixed iframe path to match Flask route -->
+                        <iframe src="/backend/generated_sites/website.html" id="resultFrame"
+                            style="width:100%; height:530px; border:1px solid transparent; background-color: black;"></iframe>
+                    </div>
+                    <div class="tool-bar w-100 h-auto d-flex justify-content-center align-items-center">
+                        <img src="/static/assets/bubble-chat.png" alt="chat" class="tool-icons m-2">
+                        <img src="/static/assets/art.png" alt="colours" class="tool-icons m-2">
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <footer></footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q"
+        crossorigin="anonymous"></script>
+
+    <!-- Fixed JS path -->
+    <script src="/static/main.js"></script>
+
+</body>
+
+</html>

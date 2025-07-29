@@ -1,0 +1,356 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top Gear Blog</title>
+    <style>
+        /* General Resets & Body Styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #F5F5F5; /* Light grey, close to white */
+            color: #333; /* Dark grey for general text */
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            box-sizing: border-box; /* Include padding and border in the element's total width and height */
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+            flex: 1; /* Allow content to grow and push footer down */
+        }
+
+        /* Header */
+        header {
+            background-color: #000; /* Black, common for TG logo background */
+            color: #FFF;
+            padding: 20px 0;
+            text-align: center;
+            border-bottom: 5px solid #CC0000; /* Top Gear Red accent */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 3em;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: bold;
+            color: #FFF;
+        }
+
+        /* Navigation */
+        nav {
+            background-color: #333; /* Dark grey */
+            padding: 10px 0;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        nav ul li {
+            margin: 0 20px;
+        }
+
+        nav ul li a {
+            color: #FFF;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 5px 0;
+            transition: color 0.3s ease;
+        }
+
+        nav ul li a:hover {
+            color: #CC0000; /* Top Gear Red on hover */
+        }
+
+        /* Main Content Layout */
+        .main-content {
+            display: flex;
+            flex-wrap: wrap; /* Allows wrap for smaller screens */
+            gap: 20px; /* Space between main and sidebar */
+            margin-top: 20px;
+        }
+
+        .blog-posts {
+            flex: 3; /* Main content takes more space */
+            min-width: 60%; /* Ensure it doesn't get too small */
+        }
+
+        .sidebar {
+            flex: 1; /* Sidebar takes less space */
+            min-width: 250px; /* Minimum width for sidebar */
+            background-color: #FFF;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* Blog Post Styling */
+        article.blog-post {
+            background-color: #FFF;
+            padding: 30px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        article.blog-post h2 {
+            color: #000;
+            margin-top: 0;
+            font-size: 2em;
+            border-bottom: 2px solid #EEE;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .post-meta {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .post-meta span {
+            margin-right: 15px;
+        }
+
+        .post-content {
+            margin-bottom: 15px;
+        }
+
+        .post-content p {
+            margin-bottom: 1em;
+        }
+
+        .read-more {
+            display: inline-block;
+            background-color: #CC0000;
+            color: #FFF;
+            padding: 10px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .read-more:hover {
+            background-color: #A00000; /* Darker red on hover */
+        }
+
+        /* Sidebar Styling */
+        .sidebar h3 {
+            color: #000;
+            margin-top: 0;
+            border-bottom: 2px solid #EEE;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar ul li {
+            margin-bottom: 10px;
+        }
+
+        .sidebar ul li a {
+            color: #CC0000;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .sidebar ul li a:hover {
+            text-decoration: underline;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #333;
+            color: #FFF;
+            text-align: center;
+            padding: 20px 0;
+            margin-top: 40px;
+            border-top: 5px solid #CC0000;
+        }
+
+        footer p {
+            margin: 0;
+            font-size: 0.9em;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column; /* Stack main and sidebar */
+            }
+
+            .blog-posts, .sidebar {
+                min-width: unset; /* Remove min-width */
+                flex: none; /* No flex growth */
+                width: 100%; /* Take full width */
+            }
+
+            header h1 {
+                font-size: 2em;
+            }
+
+            nav ul {
+                flex-direction: column;
+            }
+
+            nav ul li {
+                margin: 10px 0;
+            }
+
+            article.blog-post {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Top Gear</h1>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#home">Home</a></li>
+            <li><a href="#blog">Blog</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="main-content">
+            <section class="blog-posts" id="blog">
+                <article class="blog-post">
+                    <h2>The Grand Tour's Next Adventure?</h2>
+                    <div class="post-meta">
+                        <span>By Jeremy Clarkson</span>
+                        <span class="post-date">July 25, 2024</span>
+                    </div>
+                    <div class="post-content">
+                        <p>Rumours are swirling about what the trio of Clarkson, Hammond, and May might be up to next after their highly successful Grand Tour series. While no official announcements have been made, sources close to the production hint at a more focused, perhaps less travel-intensive, format for future projects. Could we see them back in a studio setting, or exploring more niche automotive topics?</p>
+                        <p id="post1-full-content" style="display: none;">Speculation includes a potential return to UK-based challenges, focusing on classic cars, or even delving into the burgeoning electric vehicle market. Fans are eagerly awaiting any news, hoping for the return of their unique brand of automotive mayhem and banter. Whatever it is, you can bet it won't be boring.</p>
+                        <a href="#" class="read-more" data-target="post1-full-content">Read More</a>
+                    </div>
+                </article>
+
+                <article class="blog-post">
+                    <h2>Future of Supercars: Electric vs. Hyper-Hybrid</h2>
+                    <div class="post-meta">
+                        <span>By Richard Hammond</span>
+                        <span class="post-date">July 20, 2024</span>
+                    </div>
+                    <div class="post-content">
+                        <p>The supercar landscape is undergoing a dramatic transformation. With regulations tightening and technology advancing rapidly, manufacturers are facing a crucial choice: go full electric, or perfect the hyper-hybrid powertrain? We take a look at the pros and cons of each approach, from instant torque to the intoxicating roar of a V12.</p>
+                        <p id="post2-full-content" style="display: none;">Electric supercars like the Rimac Nevera are setting new benchmarks for acceleration, proving that silent power can be absolutely terrifyingly fast. However, the emotional connection to a gasoline engine, the symphony of combustion, is something many purists are not ready to let go of. Hybrid systems offer a bridge, combining electric boost with traditional engines for unparalleled performance and efficiency. Which path will dominate the future? Only time will tell, but it's going to be an exciting ride.</p>
+                        <a href="#" class="read-more" data-target="post2-full-content">Read More</a>
+                    </div>
+                </article>
+
+                <article class="blog-post">
+                    <h2>Are Manual Gearboxes a Relic of the Past?</h2>
+                    <div class="post-meta">
+                        <span>By James May</span>
+                        <span class="post-date">July 15, 2024</span>
+                    </div>
+                    <div class="post-content">
+                        <p>In an age of lightning-fast dual-clutch transmissions and seamless automatics, the humble manual gearbox seems increasingly like an anachronism. Is it time to finally bid farewell to the stick shift, or does it still hold a special place in the hearts of driving enthusiasts?</p>
+                        <p id="post3-full-content" style="display: none;">For many, the manual gearbox offers an unparalleled level of engagement, a true connection between driver and machine. The satisfaction of a perfectly rev-matched downshift, the precise control over the car's power delivery – these are experiences that automatics, however advanced, simply cannot replicate. However, for everyday driving in congested cities, the convenience of an automatic is undeniable. As electric vehicles become more prevalent, the very concept of a gearbox might become obsolete. We ponder the future of this beloved mechanical component.</p>
+                        <a href="#" class="read-more" data-target="post3-full-content">Read More</a>
+                    </div>
+                </article>
+            </section>
+
+            <aside class="sidebar">
+                <h3>Categories</h3>
+                <ul>
+                    <li><a href="#">Supercars</a></li>
+                    <li><a href="#">Classic Cars</a></li>
+                    <li><a href="#">Electric Vehicles</a></li>
+                    <li><a href="#">Reviews</a></li>
+                    <li><a href="#">Motorsport</a></li>
+                </ul>
+
+                <h3>Recent Posts</h3>
+                <ul>
+                    <li><a href="#">The Art of the Perfect Drift</a></li>
+                    <li><a href="#">Why Small Cars Are Great (Sometimes)</a></li>
+                    <li><a href="#">Testing the Latest Hypercar</a></li>
+                    <li><a href="#">Road Trip Essentials</a></li>
+                </ul>
+            </aside>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; <span id="current-year"></span> Top Gear Blog. All rights reserved. Not affiliated with BBC or Amazon.</p>
+    </footer>
+
+    <script>
+        // JavaScript for dynamic date in footer
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        // JavaScript for "Read More" functionality
+        document.querySelectorAll('.read-more').forEach(button => {
+            button.addEventListener('click', function(event) {
+                event.preventDefault(); // Prevent default link behavior
+                const targetId = this.dataset.target;
+                const fullContent = document.getElementById(targetId);
+
+                if (fullContent.style.display === 'none') {
+                    fullContent.style.display = 'block';
+                    this.textContent = 'Read Less';
+                } else {
+                    fullContent.style.display = 'none';
+                    this.textContent = 'Read More';
+                }
+            });
+        });
+
+        // Optional: Smooth scroll for internal navigation
+        document.querySelectorAll('nav a').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+
+                if (targetId === '#home') {
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+```

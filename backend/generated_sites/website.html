@@ -1,0 +1,251 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>aman - Fun Blog</title>
+    <style>
+        /* General Styling */
+        body {
+            font-family: 'Nunito', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8f8f8; /* Light background */
+            color: #333; /* Dark text */
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        header {
+            background-color: #FF6B6B; /* Fun accent color */
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-bottom-left-radius: 15px;
+            border-bottom-right-radius: 15px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.8em;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header p {
+            font-style: italic;
+            margin-top: 5px;
+            font-size: 1.1em;
+        }
+
+        /* Main Content */
+        main {
+            flex-grow: 1;
+            padding: 20px 0;
+        }
+
+        .blog-posts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .post-card {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 15px; /* Rounded corners for fun */
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08); /* Soft shadow */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .post-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .post-card h2 {
+            color: #FF6B6B; /* Accent color for titles */
+            margin-top: 0;
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+
+        .post-card .post-meta {
+            font-size: 0.9em;
+            color: #888;
+            margin-bottom: 15px;
+        }
+
+        .post-card p {
+            flex-grow: 1;
+            margin-bottom: 20px;
+        }
+
+        .post-card a.read-more-btn {
+            display: inline-block;
+            background-color: #6B4CFF; /* Another fun accent color */
+            color: white;
+            padding: 10px 18px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            text-align: center;
+            margin-top: auto;
+            align-self: flex-start;
+        }
+
+        .post-card a.read-more-btn:hover {
+            background-color: #553BBF;
+        }
+
+        .like-section {
+            display: flex;
+            align-items: center;
+            margin-top: 15px;
+            gap: 10px;
+        }
+
+        .like-button {
+            background-color: #FFD93D; /* Yellow accent */
+            color: #333;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .like-button:hover {
+            background-color: #FFEB80;
+            transform: scale(1.03);
+        }
+
+        .like-button:active {
+            transform: scale(0.98);
+        }
+
+        .like-count {
+            font-weight: bold;
+            color: #6B4CFF; /* Purple accent */
+        }
+
+        /* Footer */
+        footer {
+            background-color: #FF6B6B; /* Matching header accent */
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            margin-top: 40px;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+        }
+
+        footer p {
+            margin: 0;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>aman</h1>
+            <p>Your daily dose of fun & inspiration! ✨</p>
+        </div>
+    </header>
+
+    <main>
+        <div class="container blog-posts">
+            <!-- Blog Post 1 -->
+            <article class="post-card">
+                <h2>The Joy of Learning New Things</h2>
+                <p class="post-meta">By Alex Smith on October 26, 2023</p>
+                <p>Ever feel that rush when a new concept clicks? Learning is an adventure, a continuous journey of discovery. Whether it's a new language, a skill, or just a fun fact, embracing curiosity keeps life vibrant!</p>
+                <a href="#" class="read-more-btn">Read More</a>
+                <div class="like-section">
+                    <button class="like-button">👍 Like</button>
+                    <span class="like-count">0 Likes</span>
+                </div>
+            </article>
+
+            <!-- Blog Post 2 -->
+            <article class="post-card">
+                <h2>Adventures in Baking: My First Soufflé</h2>
+                <p class="post-meta">By Maria Lee on October 25, 2023</p>
+                <p>Oh, the drama of a soufflé! It's notoriously tricky, but the satisfaction of seeing it rise... pure magic! Follow my kitchen mishaps and triumphs as I attempt this culinary challenge. Spoiler: there were deflated moments!</p>
+                <a href="#" class="read-more-btn">Read More</a>
+                <div class="like-section">
+                    <button class="like-button">👍 Like</button>
+                    <span class="like-count">0 Likes</span>
+                </div>
+            </article>
+
+            <!-- Blog Post 3 -->
+            <article class="post-card">
+                <h2>Finding Peace in Everyday Moments</h2>
+                <p class="post-meta">By John Doe on October 24, 2023</p>
+                <p>Life can be hectic, but beautiful moments are always around us. From a quiet cup of coffee to the sound of rain, discovering these small joys can bring immense peace and happiness. Let's practice mindfulness together.</p>
+                <a href="#" class="read-more-btn">Read More</a>
+                <div class="like-section">
+                    <button class="like-button">👍 Like</button>
+                    <span class="like-count">0 Likes</span>
+                </div>
+            </article>
+
+            <!-- Blog Post 4 -->
+            <article class="post-card">
+                <h2>My Top 5 Travel Hacks for Budget Explorers</h2>
+                <p class="post-meta">By Sarah Chen on October 23, 2023</p>
+                <p>Dreaming of travel but on a tight budget? No problem! I've explored the world on a shoestring, and I'm sharing my top five strategies for making your adventures affordable and unforgettable. Pack your bags!</p>
+                <a href="#" class="read-more-btn">Read More</a>
+                <div class="like-section">
+                    <button class="like-button">👍 Like</button>
+                    <span class="like-count">0 Likes</span>
+                </div>
+            </article>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2023 aman Blog. All rights reserved. Made with fun! 😄</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const likeButtons = document.querySelectorAll('.like-button');
+
+            likeButtons.forEach(button => {
+                let likeCount = 0; // Initialize count for each button/post
+                const likeCountSpan = button.nextElementSibling; // Get the span to update
+
+                button.addEventListener('click', () => {
+                    likeCount++;
+                    likeCountSpan.textContent = `${likeCount} Like${likeCount !== 1 ? 's' : ''}`;
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+```
