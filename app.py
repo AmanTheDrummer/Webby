@@ -35,6 +35,63 @@ def get_db_connection():
 # Secret key for session management
 app.secret_key = 'supersecret' 
 
+# NEW: AI-powered prompt generation function
+def generate_custom_prompt_with_ai(answers):
+    """Use AI to generate a customized prompt based on user answers"""
+    
+    MAX_PROMPT_LENGTH = 2000  # Set maximum prompt length
+    
+    prompt_generator_input = f"""
+You are a prompt engineering expert. Create a unique, creative prompt for generating a website with Gemini AI.
+
+USER REQUIREMENTS:
+- Site name: {answers['site_name']}
+- Color scheme: {answers['color_scheme']}
+- Type: {answers['site_type']}
+- Vibe: {answers['vibe']}
+
+INSTRUCTIONS:
+- Generate a creative, detailed prompt that will result in a unique website design
+- Vary the design approach (minimalist, brutalist, modern, artistic, corporate, etc.)
+- Include specific layout techniques (grid, flexbox, asymmetrical, card-based, etc.)
+- Specify animation and interaction styles
+- Mention current design trends and modern techniques
+- Be creative and unique - avoid generic approaches
+- IMPORTANT: Keep the prompt under {MAX_PROMPT_LENGTH} characters
+- The prompt should be detailed but concise
+
+OUTPUT FORMAT:
+Generate a complete prompt that starts with "Generate a complete, single HTML file with embedded CSS and JavaScript..." and includes all the specifications needed for Gemini to create an amazing website.
+
+Make it unique and creative while maintaining professional standards. Keep it under {MAX_PROMPT_LENGTH} characters.
+"""
+
+    print("[INFO] Generating custom prompt with AI...")
+    ai_generated_prompt = call_gemini(prompt_generator_input)
+    
+    if ai_generated_prompt and ai_generated_prompt.strip():
+        generated_prompt = ai_generated_prompt.strip()
+        
+        # Check and truncate if too long
+        if len(generated_prompt) > MAX_PROMPT_LENGTH:
+            print(f"[WARN] Generated prompt too long ({len(generated_prompt)} chars), truncating to {MAX_PROMPT_LENGTH}")
+            generated_prompt = generated_prompt[:MAX_PROMPT_LENGTH] + "... OUTPUT: Complete HTML file with embedded CSS and JavaScript. No explanations, only the HTML code."
+        
+        print(f"[INFO] Custom prompt generated successfully ({len(generated_prompt)} characters)")
+        return generated_prompt
+    else:
+        print("[WARN] AI prompt generation failed, using fallback")
+        # Fallback to a basic prompt if AI generation fails
+        return f"""
+Generate a complete and functional single HTML file with embedded CSS and JavaScript 
+that matches these specifications: 
+Site name: {answers['site_name']}, 
+Color scheme: {answers['color_scheme']}, 
+Type: {answers['site_type']}, 
+Vibe: {answers['vibe']}. 
+Only output valid HTML code, nothing else. No explanations.
+"""
+
 # Serve static files (CSS, JS)
 @app.route('/static/<path:filename>')
 def serve_static(filename):
@@ -216,15 +273,9 @@ def chat():
         print("[INFO] All answers collected.")
         answers = session['chat_answers']
         
-        prompt = (
-            f"Generate a complete and functional single HTML file with embedded CSS and JavaScript "
-            f"that matches these specifications: "
-            f"Site name: {answers['site_name']}, "
-            f"Color scheme: {answers['color_scheme']}, "
-            f"Type: {answers['site_type']}, "
-            f"Vibe: {answers['vibe']}. "
-            f"Only output valid HTML code, nothing else. No explanations."
-        )
+        # CHANGED: Use AI to generate custom prompt instead of hardcoded one
+        prompt = generate_custom_prompt_with_ai(answers)
+        print(f"[INFO] AI-generated custom prompt created")
 
         print("[INFO] Sending prompt to Gemini...")
         gemini_response = call_gemini(prompt)
@@ -282,7 +333,7 @@ def call_gemini(prompt):
         ]
     }
     try:
-        response = requests.post(url, json=payload)
+        response = requests.post(url, json=payload, timeout=60)  # Added timeout
         print(f"[DEBUG] Response status: {response.status_code}")
         response.raise_for_status()
         data = response.json()
@@ -294,6 +345,9 @@ def call_gemini(prompt):
         )
         print("[INFO] Gemini API response received.")
         return content
+    except requests.exceptions.Timeout:
+        print("[ERROR] Gemini API timeout after 60 seconds")
+        return None
     except Exception as e:
         print(f"[ERROR] Error calling Gemini: {e}")
         return None
