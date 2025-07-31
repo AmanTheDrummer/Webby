@@ -557,3 +557,562 @@ body {
     opacity: 0.7;
     pointer-events: none;
 }
+
+/* =============== */
+/* LOGIN PAGE STYLES */
+/* =============== */
+
+/* Login page specific body styling */
+body.login-page {
+    background: linear-gradient(135deg, #14071e 0%, #2a0e40 50%, #1e0830 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    font-family: 'Bricolage Grotesque', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Login container */
+.login-container {
+    background: linear-gradient(135deg, #1e0830 0%, #2a0e40 100%);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 
+                0 0 30px rgba(203, 108, 230, 0.1);
+    border: 1px solid rgba(203, 108, 230, 0.2);
+    backdrop-filter: blur(10px);
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Login title */
+.login-title {
+    color: #cb6ce6;
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 700;
+    font-size: 2.5rem;
+    text-align: center;
+    margin-bottom: 2rem;
+    text-shadow: 0 0 20px rgba(203, 108, 230, 0.3);
+    position: relative;
+}
+
+.login-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #cb6ce6, transparent);
+    border-radius: 2px;
+}
+
+/* Form labels */
+.login-form .form-label {
+    color: #cb6ce6;
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Form inputs - enhanced styling */
+.login-form .form-control {
+    background: linear-gradient(135deg, #14071e 0%, #1e0830 100%) !important;
+    border: 2px solid rgba(203, 108, 230, 0.3) !important;
+    border-radius: 15px !important;
+    color: #ffffff !important;
+    padding: 15px 20px !important;
+    font-size: 1rem;
+    transition: all 0.4s ease;
+    position: relative;
+}
+
+.login-form .form-control:focus {
+    border-color: #cb6ce6 !important;
+    box-shadow: 0 0 0 0.25rem rgba(203, 108, 230, 0.25),
+                0 0 20px rgba(203, 108, 230, 0.4) !important;
+    background: linear-gradient(135deg, #1e0830 0%, #2a0e40 100%) !important;
+    transform: translateY(-2px);
+}
+
+.login-form .form-control::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+}
+
+/* Login button */
+.login-btn {
+    background: linear-gradient(135deg, #cb6ce6 0%, #aa41c4 100%) !important;
+    border: none !important;
+    border-radius: 15px !important;
+    color: white !important;
+    font-weight: 600 !important;
+    font-size: 1.1rem !important;
+    padding: 15px 0 !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+    margin-top: 20px;
+}
+
+.login-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.6s ease;
+}
+
+.login-btn:hover {
+    background: linear-gradient(135deg, #b855d1 0%, #9635a8 100%) !important;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(203, 108, 230, 0.4) !important;
+}
+
+.login-btn:hover::before {
+    left: 100%;
+}
+
+.login-btn:active {
+    transform: translateY(-1px);
+}
+
+/* Sign up link */
+.signup-link {
+    text-align: center;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(203, 108, 230, 0.2);
+}
+
+.signup-link p {
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.signup-link a {
+    color: #cb6ce6;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.signup-link a::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: #cb6ce6;
+    transition: width 0.3s ease;
+}
+
+.signup-link a:hover {
+    color: #b855d1;
+    text-shadow: 0 0 10px rgba(203, 108, 230, 0.5);
+}
+
+.signup-link a:hover::after {
+    width: 100%;
+}
+
+/* Form group styling */
+.login-form .mb-3 {
+    margin-bottom: 25px;
+    position: relative;
+}
+
+/* Input focus animation */
+.login-form .form-control:focus + .form-label,
+.login-form .form-control:not(:placeholder-shown) + .form-label {
+    transform: translateY(-8px) scale(0.85);
+    color: #cb6ce6;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .login-container {
+        margin: 20px;
+        padding: 30px 25px;
+    }
+    
+    .login-title {
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .login-form .form-control {
+        padding: 12px 16px !important;
+    }
+    
+    .login-btn {
+        padding: 12px 0 !important;
+        font-size: 1rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-container {
+        margin: 15px;
+        padding: 25px 20px;
+    }
+    
+    .login-title {
+        font-size: 1.8rem;
+    }
+}
+
+/* Loading state for form submission */
+.login-form.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.login-form.loading .login-btn {
+    background: linear-gradient(135deg, #666 0%, #555 100%) !important;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Add subtle animations for form elements */
+.login-form .form-control,
+.login-form .form-label,
+.login-btn {
+    animation: slideInLeft 0.6s ease-out;
+    animation-fill-mode: both;
+}
+
+.login-form .mb-3:nth-child(1) { animation-delay: 0.1s; }
+.login-form .mb-3:nth-child(2) { animation-delay: 0.2s; }
+.login-btn { animation-delay: 0.3s; }
+.signup-link { 
+    animation: fadeIn 0.6s ease-out 0.4s;
+    animation-fill-mode: both;
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* ================ */
+/* SIGNUP PAGE STYLES */
+/* ================ */
+
+/* Signup page specific body styling */
+body.signup-page {
+    background: linear-gradient(135deg, #14071e 0%, #2a0e40 50%, #1e0830 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    font-family: 'Bricolage Grotesque', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Signup container */
+.signup-container {
+    background: linear-gradient(135deg, #1e0830 0%, #2a0e40 100%);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 
+                0 0 30px rgba(203, 108, 230, 0.1);
+    border: 1px solid rgba(203, 108, 230, 0.2);
+    backdrop-filter: blur(10px);
+    animation: fadeInUp 0.6s ease-out;
+}
+
+/* Signup title */
+.signup-title {
+    color: #cb6ce6;
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 700;
+    font-size: 2.5rem;
+    text-align: center;
+    margin-bottom: 2rem;
+    text-shadow: 0 0 20px rgba(203, 108, 230, 0.3);
+    position: relative;
+}
+
+.signup-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #cb6ce6, transparent);
+    border-radius: 2px;
+}
+
+/* Form labels */
+.signup-form .form-label {
+    color: #cb6ce6;
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Form inputs - enhanced styling */
+.signup-form .form-control {
+    background: linear-gradient(135deg, #14071e 0%, #1e0830 100%) !important;
+    border: 2px solid rgba(203, 108, 230, 0.3) !important;
+    border-radius: 15px !important;
+    color: #ffffff !important;
+    padding: 15px 20px !important;
+    font-size: 1rem;
+    transition: all 0.4s ease;
+    position: relative;
+}
+
+.signup-form .form-control:focus {
+    border-color: #cb6ce6 !important;
+    box-shadow: 0 0 0 0.25rem rgba(203, 108, 230, 0.25),
+                0 0 20px rgba(203, 108, 230, 0.4) !important;
+    background: linear-gradient(135deg, #1e0830 0%, #2a0e40 100%) !important;
+    transform: translateY(-2px);
+}
+
+.signup-form .form-control::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+}
+
+/* Signup button */
+.signup-btn {
+    background: linear-gradient(135deg, #cb6ce6 0%, #aa41c4 100%) !important;
+    border: none !important;
+    border-radius: 15px !important;
+    color: white !important;
+    font-weight: 600 !important;
+    font-size: 1.1rem !important;
+    padding: 15px 0 !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+    margin-top: 20px;
+}
+
+.signup-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.6s ease;
+}
+
+.signup-btn:hover {
+    background: linear-gradient(135deg, #b855d1 0%, #9635a8 100%) !important;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(203, 108, 230, 0.4) !important;
+}
+
+.signup-btn:hover::before {
+    left: 100%;
+}
+
+.signup-btn:active {
+    transform: translateY(-1px);
+}
+
+/* Login link */
+.login-link {
+    text-align: center;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(203, 108, 230, 0.2);
+}
+
+.login-link p {
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.login-link a {
+    color: #cb6ce6;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.login-link a::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: #cb6ce6;
+    transition: width 0.3s ease;
+}
+
+.login-link a:hover {
+    color: #b855d1;
+    text-shadow: 0 0 10px rgba(203, 108, 230, 0.5);
+}
+
+.login-link a:hover::after {
+    width: 100%;
+}
+
+/* Form group styling */
+.signup-form .mb-3 {
+    margin-bottom: 25px;
+    position: relative;
+}
+
+/* Input focus animation */
+.signup-form .form-control:focus + .form-label,
+.signup-form .form-control:not(:placeholder-shown) + .form-label {
+    transform: translateY(-8px) scale(0.85);
+    color: #cb6ce6;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .signup-container {
+        margin: 20px;
+        padding: 30px 25px;
+    }
+    
+    .signup-title {
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .signup-form .form-control {
+        padding: 12px 16px !important;
+    }
+    
+    .signup-btn {
+        padding: 12px 0 !important;
+        font-size: 1rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .signup-container {
+        margin: 15px;
+        padding: 25px 20px;
+    }
+    
+    .signup-title {
+        font-size: 1.8rem;
+    }
+}
+
+/* Loading state for form submission */
+.signup-form.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.signup-form.loading .signup-btn {
+    background: linear-gradient(135deg, #666 0%, #555 100%) !important;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Add subtle animations for form elements */
+.signup-form .form-control,
+.signup-form .form-label,
+.signup-btn {
+    animation: slideInLeft 0.6s ease-out;
+    animation-fill-mode: both;
+}
+
+.signup-form .mb-3:nth-child(1) { animation-delay: 0.1s; }
+.signup-form .mb-3:nth-child(2) { animation-delay: 0.2s; }
+.signup-form .mb-3:nth-child(3) { animation-delay: 0.3s; }
+.signup-btn { animation-delay: 0.4s; }
+.login-link { 
+    animation: fadeIn 0.6s ease-out 0.5s;
+    animation-fill-mode: both;
+}
+
+/* Password strength indicator (optional enhancement) */
+.password-strength {
+    margin-top: 8px;
+    height: 4px;
+    background: rgba(203, 108, 230, 0.2);
+    border-radius: 2px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.password-strength-bar {
+    height: 100%;
+    width: 0%;
+    transition: all 0.3s ease;
+    border-radius: 2px;
+}
+
+.password-strength-bar.weak {
+    width: 33%;
+    background: linear-gradient(90deg, #ff6b6b, #ff8e8e);
+}
+
+.password-strength-bar.medium {
+    width: 66%;
+    background: linear-gradient(90deg, #ffeaa7, #fdcb6e);
+}
+
+.password-strength-bar.strong {
+    width: 100%;
+    background: linear-gradient(90deg, #cb6ce6, #b855d1);
+}
+
+/* Form validation feedback */
+.signup-form .form-control.is-invalid {
+    border-color: #ff6b6b !important;
+    box-shadow: 0 0 0 0.25rem rgba(255, 107, 107, 0.25),
+                0 0 20px rgba(255, 107, 107, 0.4) !important;
+}
+
+.signup-form .form-control.is-valid {
+    border-color: #4ecdc4 !important;
+    box-shadow: 0 0 0 0.25rem rgba(78, 205, 196, 0.25),
+                0 0 20px rgba(78, 205, 196, 0.4) !important;
+}
