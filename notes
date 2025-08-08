@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 Okay so far we have got a basic structure, we have not yet connected any API. 
 
 WHY?
@@ -148,37 +147,16 @@ conn = psycopg2.connect(
 </body>
 
 </html>
-=======
-Okay so far we have got a basic structure, we have not yet connected any API. 
 
-WHY?
-    - GPT or Claude can code the HTML and CSS. But can not graphically show or host the site
-    - We need a hosting API such as netlify or Github Actions
-    - In order to generate images or svg, we need something like DALL-E or MidJourney
 
-We will be using Google Gemini free tier API for generating code.
-We will use netlify API for hosting. (also free)
+const iframe = document.getElementById('preview-iframe');
 
-Workflow (AI code) (1 API call made to AI per website) = 
+iframe.onload = () => {
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
 
-ask the hardcoded questions --> gather info on type of website --> compile a prompt to send to LLM via API --> recieve html and css code for the website --> deploy the website code on netlify using the netlify API. 
-
-PROMPT
-make me a website, the name of my brand is informia, the theme is dark colours, the vibe is fun and the purpose is a portfolio website for the brand. make me a frontend page theme using html css as a template to use
-
-GEMINI API KEY
-AIzaSyDEMCfPVFCcQuwB1Q8ysLh0AF2pcX0caZA
-
-- Drag n Drop (next)
-- Scraper (next)
-- Email thrower
-- Inhouse data
-
-1) SCRAPER
-    It is not just a web scraper, it is also a web crawler WHICH scrapes data from sites. Although a model can be made, the implementation on a large scale level will need high computational power and a database which can store data from all sites scraped.
-    The other issue is the legality of the situation, not all websites allow scraping and most websites also only allow crawling to some extent (enough for them to be indexed by browsers)
-
-2) Drag n Drop feature.
-    - svg for logos & icons
-    - png for images
->>>>>>> 103a66ba34ce170a9e5f50558c51fab6d6e1a334
+    const elements = doc.querySelectorAll('h1, h2, h3, p, a, img, span, div, button');
+    elements.forEach(el => {
+        el.setattribute('contenteditable', 'true');
+        el.styleoutline = '1px dashed white';
+    });
+};

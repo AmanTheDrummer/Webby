@@ -242,6 +242,7 @@ def serve_generated(filename):
         print(f"[ERROR] Failed to serve website for user {user_id}: {e}")
         return "Internal server error", 500
 
+# Chat route to handle user input and generate website
 @app.route('/chat', methods=['POST'])
 def chat():
     if 'user_id' not in session:
@@ -292,23 +293,118 @@ def chat():
                 cur.execute("""
                     INSERT INTO websites (user_id, site_name, prompt, html_code)
                     VALUES (%s, %s, %s, %s)
+                    RETURNING id
                 """, (user_id, site_name, prompt, html_code))
+                site_id = cur.fetchone()[0]
                 conn.commit()
                 cur.close()
                 conn.close()
                 print("[DB] Website saved in Supabase.")
+                
             except Exception as e:
                 print(f"[DB ERROR] {e}")
 
             return jsonify({
                 "reply": "Here is your website code!",
-                "code": html_code,
-                "url": f"/backend/generated_sites/website_{user_id}.html"
+                 "site_id": site_id
             })
         else:
             print("[ERROR] Failed to get response from Gemini.")
             return jsonify({"reply": "Something went wrong while generating the website. Please try again."})
 
+# Serve the generated webstie from the database
+@app.route('/sitepreview/<int:site_id>', methods=['GET'])
+def site_preview(site_id):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT html_code FROM websites WHERE id = %s
+        """, (site_id,))
+        site= cur.fetchone()
+        cur.close()
+        conn.close()
+        
+        if site:
+            html_code = site[0]
+            return html_code, 200, {"Content-Type": "text/html"}
+        else:
+            return "<h2>Website not found.</h2>", 404
+        
+    except Exception as e:
+        print(f"[ERROR] {e}")
+        return "<h2>Something went wrong while loading the website.</h2>", 500
+     
+# Serve the latest generated website for preview   
+@app.route('/sitepreview/latest')
+def site_preview_latest():
+    if 'user_id' not in session:
+        return "Please log in to preview your site.", 401
+
+    try:
+        user_id = session['user_id']
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT id, html_code
+            FROM websites
+            WHERE user_id = %s
+            ORDER BY created_at DESC
+            LIMIT 1
+        """, (user_id,))
+        result = cur.fetchone()
+        cur.close()
+        conn.close()
+
+        if result:
+            site_id, html_code = result
+            return html_code, 200, {"Content-Type": "text/html"} # Full HTML already
+        else:
+            return "<h2>You haven’t generated any websites yet.</h2>", 404
+
+    except Exception as e:
+        print(f"[ERROR] {e}")
+        return "<h2>Something went wrong while loading the website.</h2>", 500
+
+# Update the latest site with new HTML code
+@app.route('/update_site', methods=['POST'])
+def update_site():
+    data = request.get_json()
+    html_code = data.get('html_code', '').strip()
+    
+    if 'user_id' not in session:
+        return jsonify({"reply": "Please log in to update your site."}), 401
+    
+    user_id = session['user_id']
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT id FROM websites
+        WHERE user_id = %s
+        ORDER BY created_at DESC
+        LIMIT 1
+    """, (user_id,))
+    
+    row = cur.fetchone()
+    
+    if not row:
+        return jsonify({"reply": "No website found to update."}), 404
+    
+    site_id = row[0]
+    cur.execute("""
+        UPDATE websites
+        SET html_code = %s
+        WHERE id = %s
+    """, (html_code, site_id))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return jsonify({"message": "Site updated successfully!"}), 200
+    
+# Restart chat session route
 @app.route('/restart', methods=['POST'])
 def restart():
     if 'user_id' not in session:
@@ -352,6 +448,7 @@ def call_gemini(prompt):
         print(f"[ERROR] Error calling Gemini: {e}")
         return None
 
+# Serve generated website files
 if __name__ == "__main__":
     print("[INFO] Starting Flask app...")
     app.run(debug=True, host='0.0.0.0', port=5000)
