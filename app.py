@@ -3,15 +3,15 @@ from flask_cors import CORS
 import os
 import requests
 import psycopg2
+import uuid
 
 from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
- # enable Cross Origin Resource Sharing (CORS) for all routes of the app
 CORS(app)
 
-# Hardocded questions for the chat session
+# Hardcoded questions for the chat session
 QUESTIONS = [
     {"key": "site_name", "question": "What is the name of your website?"},
     {"key": "color_scheme", "question": "What color scheme do you want? (light/dark/custom)"},
@@ -35,63 +35,56 @@ def get_db_connection():
 # Secret key for session management
 app.secret_key = 'supersecret' 
 
-# NEW: AI-powered prompt generation function
 def generate_custom_prompt_with_ai(answers):
-    """Use AI to generate a customized prompt based on user answers"""
+    """Generate a concise creative prompt for Gemini based on user answers."""
     
-    MAX_PROMPT_LENGTH = 2000  # Set maximum prompt length
+    MAX_PROMPT_LENGTH = 2000  # Maximum allowed length for the final prompt
     
-    prompt_generator_input = f"""
-You are a prompt engineering expert. Create a unique, creative prompt for generating a website with Gemini AI.
-
-USER REQUIREMENTS:
-- Site name: {answers['site_name']}
-- Color scheme: {answers['color_scheme']}
-- Type: {answers['site_type']}
-- Vibe: {answers['vibe']}
-
-INSTRUCTIONS:
-- Generate a creative, detailed prompt that will result in a unique website design
-- Vary the design approach (minimalist, brutalist, modern, artistic, corporate, etc.)
-- Include specific layout techniques (grid, flexbox, asymmetrical, card-based, etc.)
-- Specify animation and interaction styles
-- Mention current design trends and modern techniques
-- Be creative and unique - avoid generic approaches
-- IMPORTANT: Keep the prompt under {MAX_PROMPT_LENGTH} characters
-- The prompt should be detailed but concise
-
-OUTPUT FORMAT:
-Generate a complete prompt that starts with "Generate a complete, single HTML file with embedded CSS and JavaScript..." and includes all the specifications needed for Gemini to create an amazing website.
-
-Make it unique and creative while maintaining professional standards. Keep it under {MAX_PROMPT_LENGTH} characters.
-"""
-
+    # Compact instruction to avoid long Gemini processing times
+    prompt_generator_input = (
+        f"You are a prompt engineering expert.\n"
+        f"Create a short, creative, and detailed prompt for Gemini AI "
+        f"to generate a single HTML file with embedded CSS and JavaScript.\n"
+        f"Site name: {answers['site_name']}\n"
+        f"Color scheme: {answers['color_scheme']}\n"
+        f"Type: {answers['site_type']}\n"
+        f"Vibe: {answers['vibe']}\n"
+        f"Include design style, layout techniques, animations, and trends.\n"
+        f"Keep the entire prompt under {MAX_PROMPT_LENGTH} characters.\n"
+        "Output ONLY the generated prompt, no explanations."
+    )
+    
     print("[INFO] Generating custom prompt with AI...")
+    
+    # Call Gemini without the timeout parameter
     ai_generated_prompt = call_gemini(prompt_generator_input)
     
     if ai_generated_prompt and ai_generated_prompt.strip():
         generated_prompt = ai_generated_prompt.strip()
         
-        # Check and truncate if too long
+        # Enforce length limit
         if len(generated_prompt) > MAX_PROMPT_LENGTH:
-            print(f"[WARN] Generated prompt too long ({len(generated_prompt)} chars), truncating to {MAX_PROMPT_LENGTH}")
-            generated_prompt = generated_prompt[:MAX_PROMPT_LENGTH] + "... OUTPUT: Complete HTML file with embedded CSS and JavaScript. No explanations, only the HTML code."
+            print(f"[WARN] Generated prompt too long ({len(generated_prompt)} chars), truncating...")
+            generated_prompt = (
+                generated_prompt[:MAX_PROMPT_LENGTH] +
+                "... OUTPUT: Complete HTML file with embedded CSS and JavaScript. "
+                "No explanations, only the HTML code."
+            )
         
         print(f"[INFO] Custom prompt generated successfully ({len(generated_prompt)} characters)")
         return generated_prompt
+    
     else:
-        print("[WARN] AI prompt generation failed, using fallback")
-        # Fallback to a basic prompt if AI generation fails
-        return f"""
-Generate a complete and functional single HTML file with embedded CSS and JavaScript 
-that matches these specifications: 
-Site name: {answers['site_name']}, 
-Color scheme: {answers['color_scheme']}, 
-Type: {answers['site_type']}, 
-Vibe: {answers['vibe']}. 
-Only output valid HTML code, nothing else. No explanations.
-"""
-
+        print("[WARN] AI prompt generation failed, using fallback...")
+        # Fallback to a basic safe prompt
+        return (
+            f"Generate a complete HTML file with embedded CSS and JavaScript "
+            f"for a website named '{answers['site_name']}' "
+            f"using a {answers['color_scheme']} color scheme, "
+            f"type: {answers['site_type']}, vibe: {answers['vibe']}. "
+            "Only output valid HTML code, no explanations."
+        )
+        
 # Serve static files (CSS, JS)
 @app.route('/static/<path:filename>')
 def serve_static(filename):
@@ -121,14 +114,17 @@ def signup():
         email = request.form['email']
         password = request.form['password']
         
+        # Generate UUID for new account
+        user_uuid = str(uuid.uuid4())
+        
         conn = get_db_connection()
         cur = conn.cursor()
         
         try:
             cur.execute("""
-                INSERT INTO "Accounts" (username, email, password_hash)
-                VALUES (%s, %s, %s)
-            """, (username, email, password))
+                INSERT INTO "Accounts" (id, username, email, password_hash)
+                VALUES (%s, %s, %s, %s)
+            """, (user_uuid, username, email, password))
             conn.commit()
             print('✅ Account created successfully! Please log in.')
             session.clear()
@@ -163,10 +159,11 @@ def login():
             user = cur.fetchone()
 
             if user:
-                # login successful
-                session['user_id'] = user[0]
+                # login successful - user[0] is UUID string
+                session['user_id'] = str(user[0])  # Ensure it's stored as string
                 session['username'] = user[1]
                 init_chat_session()
+                print(f"[LOGIN] User logged in: {session['user_id']}")
                 return redirect(url_for('home'))
             else:
                 # login failed
@@ -207,6 +204,7 @@ def home():
     print("[DEBUG] User authorized, rendering home page")
     return render_template('index.html')
 
+# Serve the generated website from the database
 @app.route('/backend/generated_sites/<path:filename>')
 def serve_generated(filename):
     if 'user_id' not in session:
@@ -274,7 +272,7 @@ def chat():
         print("[INFO] All answers collected.")
         answers = session['chat_answers']
         
-        # CHANGED: Use AI to generate custom prompt instead of hardcoded one
+        # Generate custom prompt with AI
         prompt = generate_custom_prompt_with_ai(answers)
         print(f"[INFO] AI-generated custom prompt created")
 
@@ -282,37 +280,41 @@ def chat():
         gemini_response = call_gemini(prompt)
         
         if gemini_response:
-            user_id = session['user_id']
+            user_id = session['user_id']  # This is now a UUID string
             site_name = session['chat_answers'].get('site_name', 'untitled')
             html_code = gemini_response
             
-            # Save to database
+            # Save to database with proper UUID handling
             try:
                 conn = get_db_connection()
                 cur = conn.cursor()
+                
+                # Let PostgreSQL auto-generate the id, pass user_id as UUID
                 cur.execute("""
-                    INSERT INTO websites (user_id, site_name, prompt, html_code)
-                    VALUES (%s, %s, %s, %s)
+                    INSERT INTO websites (user_id, site_name, prompt, html_code, css_code, js_code)
+                    VALUES (%s, %s, %s, %s, %s, %s)
                     RETURNING id
-                """, (user_id, site_name, prompt, html_code))
+                """, (user_id, site_name, prompt, html_code, '', ''))  # Empty CSS and JS for now
+                
                 site_id = cur.fetchone()[0]
                 conn.commit()
                 cur.close()
                 conn.close()
-                print("[DB] Website saved in Supabase.")
+                print(f"[DB] Website saved in Supabase with ID: {site_id}")
                 
             except Exception as e:
                 print(f"[DB ERROR] {e}")
+                return jsonify({"reply": "Database error occurred while saving your site."}), 500
 
             return jsonify({
                 "reply": "Here is your website code!",
-                 "site_id": site_id
+                "site_id": site_id
             })
         else:
             print("[ERROR] Failed to get response from Gemini.")
             return jsonify({"reply": "Something went wrong while generating the website. Please try again."})
 
-# Serve the generated webstie from the database
+# Serve the generated website from the database by ID
 @app.route('/sitepreview/<int:site_id>', methods=['GET'])
 def site_preview(site_id):
     try:
@@ -321,7 +323,7 @@ def site_preview(site_id):
         cur.execute("""
             SELECT html_code FROM websites WHERE id = %s
         """, (site_id,))
-        site= cur.fetchone()
+        site = cur.fetchone()
         cur.close()
         conn.close()
         
@@ -358,9 +360,9 @@ def site_preview_latest():
 
         if result:
             site_id, html_code = result
-            return html_code, 200, {"Content-Type": "text/html"} # Full HTML already
+            return html_code, 200, {"Content-Type": "text/html"}
         else:
-            return "<h2>You haven’t generated any websites yet.</h2>", 404
+            return "<h2>You haven't generated any websites yet.</h2>", 404
 
     except Exception as e:
         print(f"[ERROR] {e}")
@@ -377,32 +379,39 @@ def update_site():
     
     user_id = session['user_id']
     
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("""
-        SELECT id FROM websites
-        WHERE user_id = %s
-        ORDER BY created_at DESC
-        LIMIT 1
-    """, (user_id,))
-    
-    row = cur.fetchone()
-    
-    if not row:
-        return jsonify({"reply": "No website found to update."}), 404
-    
-    site_id = row[0]
-    cur.execute("""
-        UPDATE websites
-        SET html_code = %s
-        WHERE id = %s
-    """, (html_code, site_id))
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT id FROM websites
+            WHERE user_id = %s
+            ORDER BY created_at DESC
+            LIMIT 1
+        """, (user_id,))
+        
+        row = cur.fetchone()
+        
+        if not row:
+            cur.close()
+            conn.close()
+            return jsonify({"reply": "No website found to update."}), 404
+        
+        site_id = row[0]
+        cur.execute("""
+            UPDATE websites
+            SET html_code = %s
+            WHERE id = %s
+        """, (html_code, site_id))
 
-    conn.commit()
-    cur.close()
-    conn.close()
-
-    return jsonify({"message": "Site updated successfully!"}), 200
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return jsonify({"message": "Site updated successfully!"}), 200
+        
+    except Exception as e:
+        print(f"[ERROR] Update site failed: {e}")
+        return jsonify({"reply": "Failed to update site."}), 500
     
 # Restart chat session route
 @app.route('/restart', methods=['POST'])
@@ -429,7 +438,12 @@ def call_gemini(prompt):
         ]
     }
     try:
-        response = requests.post(url, json=payload, timeout=60)  # Added timeout
+        # Ensure timeout is a positive number
+        timeout_value = 180
+        if timeout_value <= 0:
+            timeout_value = 60  # fallback to 60 seconds
+            
+        response = requests.post(url, json=payload, timeout=timeout_value)
         print(f"[DEBUG] Response status: {response.status_code}")
         response.raise_for_status()
         data = response.json()
@@ -442,13 +456,12 @@ def call_gemini(prompt):
         print("[INFO] Gemini API response received.")
         return content
     except requests.exceptions.Timeout:
-        print("[ERROR] Gemini API timeout after 60 seconds")
+        print(f"[ERROR] Gemini API timeout after {timeout_value} seconds")
         return None
     except Exception as e:
         print(f"[ERROR] Error calling Gemini: {e}")
         return None
-
-# Serve generated website files
+    
 if __name__ == "__main__":
     print("[INFO] Starting Flask app...")
     app.run(debug=True, host='0.0.0.0', port=5000)
