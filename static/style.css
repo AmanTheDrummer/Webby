@@ -1056,10 +1056,10 @@ body.signup-page {
 .image-preview,
 .graphics-preview,
 .video-preview {
-    background: linear-gradient(135deg, #14071e 0%, #1e0830 100%);
-    border: 1px solid rgba(203, 108, 230, 0.3);
+    /* background: #2a0e40; */
+    /* border: 1px solid rgba(203, 108, 230, 0.3); */
     border-radius: 15px;
-    padding: 20px;
+    padding: 10px;
     min-height: 200px;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
