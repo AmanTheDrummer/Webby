@@ -462,6 +462,7 @@ def call_gemini(prompt):
         print(f"[ERROR] Error calling Gemini: {e}")
         return None
     
+# run the main app
 if __name__ == "__main__":
     print("[INFO] Starting Flask app...")
     app.run(debug=True, host='0.0.0.0', port=5000)
