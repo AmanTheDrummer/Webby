@@ -7,6 +7,29 @@ const input = form?.querySelector('.form-control');
 const chatBox = document.querySelector('.chat-box');    
 const restartBtn = document.getElementById('restartBtn');
 const resultFrame = document.getElementById('resultFrame');
+const loaderOverlay = document.getElementById('loader-overlay'); // <-- ADD THIS LINE}
+
+// ... after your variable declarations ...
+
+// ========== LOADER HELPER FUNCTIONS ==========
+function showLoader() {
+    if (loaderOverlay) {
+        loaderOverlay.style.display = 'flex';
+    }
+}
+
+function hideLoader() {
+    if (loaderOverlay) {
+        loaderOverlay.style.display = 'none';
+    }
+}
+// =============================================
+// ... after the helper functions ...
+
+// Hide loader whenever iframe content is fully loaded
+if (resultFrame) {
+    resultFrame.addEventListener('load', hideLoader);
+}
 
 // ISSUE 1: Missing null checks - add safety checks
 if (!form) {
@@ -110,8 +133,10 @@ if (form) {
                 const url = `/sitepreview/${data.site_id}`;
                 console.log('[INFO] Setting iframe to:', url);
                 resultFrame.src = url;
+                showLoader();
             } else if (resultFrame) {
                 // Try loading latest preview
+                showLoader();
                 resultFrame.src = '/sitepreview/latest';
                 console.log('[INFO] Loading latest preview');
             }
