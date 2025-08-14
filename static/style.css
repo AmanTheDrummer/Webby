@@ -1260,3 +1260,44 @@ body.signup-page {
         animation: none;
     }
 }
+/* ========== LOADER STYLES ========== */
+
+/* Make the iframe container a positioning context for the overlay */
+.iframe-container {
+    position: relative;
+    background-color: #1a1a1a; /* Optional: background for when iframe is empty */
+}
+
+/* The loader overlay itself */
+#loader-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(26, 26, 26, 0.85); /* Dark, semi-transparent background */
+    z-index: 10; /* Ensure it's above the iframe */
+    
+    /* Center the spinner */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    /* Hide by default */
+    display: none;
+}
+
+/* The spinner animation */
+#loader-overlay .spinner {
+    width: 60px;
+    height: 60px;
+    border: 8px solid #444; /* Darker grey */
+    border-top: 8px solid #cb6ce6; /* Your brand's purple color */
+    border-radius: 50%;
+    animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
