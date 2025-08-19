@@ -103,8 +103,8 @@
                             <div id="EditSection" class="section-panel hidden">
                                 <div class="edit-tools">
                                     <div class="editor-toolbar" role="toolbar" aria-label="Edit">
-                                        <button type="button" class="editor-tool active" id="imagesTool" data-tool="images"
-                                            aria-pressed="true">Images</button>
+                                        <button type="button" class="editor-tool active" id="imagesTool"
+                                            data-tool="images" aria-pressed="true">Images</button>
                                         <button type="button" class="editor-tool" id="graphicsTool" data-tool="graphics"
                                             aria-pressed="false">Graphics</button>
                                         <button type="button" class="editor-tool" id="videosTool" data-tool="videos"
@@ -120,7 +120,7 @@
                                         <input type="file" id="imageUpload" accept="image/*" multiple
                                             aria-label="Image upload"> -->
                                         <div id="imagePreview" class="image-preview">
-                                            
+
                                         </div>
 
                                     </div>
@@ -155,30 +155,30 @@
                     <div class="iframe-container">
                         <iframe src="/sitepreview/latest" id="resultFrame" class="preview-frame"
                             title="Generated website preview" loading="lazy"></iframe>
-                            <div id="loader-overlay">
-                                <div class="spinner"></div>
-                            </div>
+                        <div class="loader"></div>
                     </div>
                     <div class="tool-bar d-flex justify-content-center align-items-center" role="toolbar"
                         aria-label="Tool selection">
-                        <button type="button" class="tool-icons active" id="chatTool" title="Chat Mode"
-                            aria-label="Chat mode" data-section="chat" aria-pressed="true">
-                            💬
-                        </button>
-                        <button type="button" class="tool-icons" id="editTool" title="Edit" aria-label="Edit mode"
-                            data-section="edit" aria-pressed="false">
-                            🎨
-                        </button>
-                        <button type="button" class="tool-icons" title="Download preview" aria-label="Download">
-                            💾
-                        </button>
-                        <button type="button" class="tool-icons" title="Full screen preview" aria-label="Full screen">
-                            🔍
-                        </button>
-                        <button type="button" class="tool-icons save-changes" title="Save changes"
-                            aria-label="Save changes">
-                            💾
-                        </button>
+                        <a><img src="/static/assets/icons/messages.svg" alt="chat" type="button"
+                                class="tool-icons active" id="chatTool" title="Chat Mode" aria-label="Chat mode"
+                                data-section="chat" aria-pressed="true"></a>
+
+                        <a><img src="/static/assets/icons/add-image.svg" alt="add-image" type="button"
+                                class="tool-icons" id="editTool" title="Add Media" aria-label="Edit mode"
+                                data-section="edit" aria-pressed="false">g</a>
+
+                        <a><img src="/static/assets/icons/download.svg" alt="Download" type="button" class="tool-icons"
+                                title="Download preview" aria-label="Download"></a>
+
+                        <a><img src="/static/assets/icons/expand.svg" alt="Full Screen" type="button" class="tool-icons"
+                                title="Full screen preview" aria-label="Full screen"></a>
+
+                        <a><img src="/static/assets/icons/bookmark.svg" alt="Save Changes" type="button"
+                                class="tool-icons save-changes" title="Save changes" aria-label="Save changes"></a>
+
+                        <a><img src="/static/assets/icons/pencil.svg" alt="Edit Mode" type="button"
+                                class="tool-icons toggle-edit" title="Toggle edit mode" aria-label="Toggle edit mode"
+                                id="toggleEditBtn"></a>
                     </div>
                 </div>
             </div>

@@ -1,860 +1,134 @@
 // ==================
-// CHAT FUNCTIONALITY
+// WEBBY AI INTERFACE
 // ==================
 
-const form = document.querySelector('#chat-form');      
-const input = form?.querySelector('.form-control');      
-const chatBox = document.querySelector('.chat-box');    
-const restartBtn = document.getElementById('restartBtn');
-const resultFrame = document.getElementById('resultFrame');
-const loaderOverlay = document.getElementById('loader-overlay'); // <-- ADD THIS LINE}
-
-// ... after your variable declarations ...
-
-// ========== LOADER HELPER FUNCTIONS ==========
-function showLoader() {
-    if (loaderOverlay) {
-        loaderOverlay.style.display = 'flex';
-    }
-}
-
-function hideLoader() {
-    if (loaderOverlay) {
-        loaderOverlay.style.display = 'none';
-    }
-}
-// =============================================
-// ... after the helper functions ...
-
-// Hide loader whenever iframe content is fully loaded
-if (resultFrame) {
-    resultFrame.addEventListener('load', hideLoader);
-}
-
-// ISSUE 1: Missing null checks - add safety checks
-if (!form) {
-    console.error('[ERROR] Chat form not found in DOM');
-}
-if (!input) {
-    console.error('[ERROR] Input field not found in DOM');
-}
-if (!chatBox) {
-    console.error('[ERROR] Chat box not found in DOM');
-}
-
-// Restart button functionality
-if (restartBtn) {
-    restartBtn.addEventListener('click', () => {
-        console.log('[INFO] Restart button clicked');
-        fetch('/restart', {
-            method: 'POST'
-        })
-        .then(res => {
-            console.log('[INFO] Restart response received');
-            if (!res.ok) {
-                throw new Error(`HTTP error! status: ${res.status}`);
-            }
-            return res.json();
-        })
-        .then(data => {
-            console.log('[BOT]', data.reply);
-            appendMessage('bot', data.reply);
-            if (resultFrame) {
-                resultFrame.src = '';
-            }
-        })
-        .catch(err => {
-            console.error('[ERROR] Failed to restart:', err);
-            appendMessage('bot', 'Error restarting session.');
-        });
-    });
-}
-
-// Append message to chat
-function appendMessage(sender, text) {
-    if (!chatBox) {
-        console.error('[ERROR] Cannot append message - chat box not found');
-        return;
-    }
-    
-    const msg = document.createElement('div');
-    msg.classList.add(`${sender}-message`);
-    msg.textContent = text;
-
-    chatBox.appendChild(msg);
-    chatBox.scrollTop = chatBox.scrollHeight;
-    console.log(`[UI] ${sender} message appended:`, text);
-}
-
-// Initialize chat on page load
-window.addEventListener('load', () => {
-    console.log('[INFO] Page loaded');
-    appendMessage('bot', 'Welcome to Webby! Tell me whats the name of your website?');
-});
-
-// Handle form submission - ISSUE 2: Missing null check for form
-if (form) {
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-
-        if (!input) {
-            console.error('[ERROR] Input not found');
-            return;
-        }
-
-        const message = input.value.trim();
-        if (!message) {
-            console.warn('[WARN] Empty input submitted');
-            return;
-        }
-
-        console.log('[USER]', message);
-        appendMessage('user', message);
-        input.value = '';
-
-        fetch('/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message })
-        })
-        .then(res => {
-            console.log('[INFO] Chat response received');
-            if (!res.ok) {
-                throw new Error(`HTTP error! status: ${res.status}`);
-            }
-            return res.json();
-        })
-        .then(data => {
-            console.log('[BOT]', data.reply);
-            appendMessage('bot', data.reply);
-
-            // ISSUE 3: Your backend returns site_id, not url
-            if (data.site_id && resultFrame) {
-                const url = `/sitepreview/${data.site_id}`;
-                console.log('[INFO] Setting iframe to:', url);
-                resultFrame.src = url;
-                showLoader();
-            } else if (resultFrame) {
-                // Try loading latest preview
-                showLoader();
-                resultFrame.src = '/sitepreview/latest';
-                console.log('[INFO] Loading latest preview');
-            }
-        })
-        .catch(err => {
-            console.error('[ERROR] Failed to send message:', err);
-            appendMessage('bot', 'Error contacting Webby.');
-        });
-    });
-}
-
-// =========================
-// SECTION SWITCHING SYSTEM
-// =========================
-
-const chatTool = document.getElementById('chatTool');
-const editTool = document.getElementById('editTool'); // Make sure this exists in HTML
-const chatSection = document.getElementById('chatSection');
-const EditSection = document.getElementById('EditSection'); // Fixed reference
-const sectionTitle = document.getElementById('section-title');
-
-// Section switching function
-function switchSection(sectionType) {
-    // Remove active class from all tools
-    document.querySelectorAll('.tool-icons').forEach(tool => {
-        tool.classList.remove('active');
-    });
-
-    if (sectionType === 'chat') {
-        if (chatSection) chatSection.classList.remove('hidden');
-        if (EditSection) EditSection.classList.add('hidden'); // Fixed reference
-        if (chatTool) chatTool.classList.add('active');
-        if (sectionTitle) sectionTitle.innerHTML = '💬 Webby <span class="status-indicator"></span>';
-        console.log('[INFO] Switched to chat section');
-    } else if (sectionType === 'edit') {
-        if (EditSection) EditSection.classList.remove('hidden'); // Fixed reference
-        if (chatSection) chatSection.classList.add('hidden');
-        if (editTool) editTool.classList.add('active'); // Fixed reference
-        if (sectionTitle) sectionTitle.innerHTML = '🎨 Edit <span class="status-indicator"></span>';
-        console.log('[INFO] Switched to edit section');
-    }
-}
-
-// Tool bar event listeners with proper null checks
-if (chatTool) {
-    chatTool.addEventListener('click', () => switchSection('chat'));
-}
-if (editTool) {
-    editTool.addEventListener('click', () => switchSection('edit'));
-}
-
-// ========================
-// EDIT SECTION SWITCHING SYSTEM
-// ========================
-
-// Get all the edit tool buttons and sections
-const imagesTool = document.getElementById('imagesTool');
-const graphicsTool = document.getElementById('graphicsTool'); 
-const videosTool = document.getElementById('videosTool'); 
-const imagesSection = document.getElementById('imagesSection');
-const graphicsSection = document.getElementById('graphicsSection');
-const videosSection = document.getElementById('videosSection');
-
-// Function to switch between edit subsections
-function switchEditSubsection(type) {
-    console.log(`[INFO] Switching to edit subsection: ${type}`);
-    
-    // Hide all edit sections and remove active state
-    const allEditSections = document.querySelectorAll('.edit-section');
-    const allEditTools = document.querySelectorAll('.editor-tool');
-    
-    allEditSections.forEach(section => {
-        section.classList.add('hidden');
-        section.classList.remove('active');
-    });
-    
-    allEditTools.forEach(tool => {
-        tool.classList.remove('active');
-        tool.setAttribute('aria-pressed', 'false');
-    });
-    
-    // Show the selected section and activate the corresponding tool
-    switch(type) {
-        case 'images':
-            if (imagesSection) {
-                imagesSection.classList.remove('hidden');
-                imagesSection.classList.add('active');
-            }
-            if (imagesTool) {
-                imagesTool.classList.add('active');
-                imagesTool.setAttribute('aria-pressed', 'true');
-            }
-            break;
-            
-        case 'graphics':
-            if (graphicsSection) {
-                graphicsSection.classList.remove('hidden');
-                graphicsSection.classList.add('active');
-            }
-            if (graphicsTool) {
-                graphicsTool.classList.add('active');
-                graphicsTool.setAttribute('aria-pressed', 'true');
-            }
-            break;
-            
-        case 'videos':
-            if (videosSection) {
-                videosSection.classList.remove('hidden');
-                videosSection.classList.add('active');
-            }
-            if (videosTool) {
-                videosTool.classList.add('active');
-                videosTool.setAttribute('aria-pressed', 'true');
-            }
-            break;
-            
-        default:
-            console.warn(`[WARN] Unknown edit subsection type: ${type}`);
-    }
-}
-
-// Add event listeners to edit tools with null checks
-if (imagesTool) {
-    imagesTool.addEventListener('click', () => switchEditSubsection('images'));
-    console.log('[INFO] Images tool listener added');
-}
-
-if (graphicsTool) {
-    graphicsTool.addEventListener('click', () => switchEditSubsection('graphics'));
-    console.log('[INFO] Graphics tool listener added');
-}
-
-if (videosTool) {
-    videosTool.addEventListener('click', () => switchEditSubsection('videos'));
-    console.log('[INFO] Videos tool listener added');
-}
-
-// ========================
-// EDIT SECTION FUNCTIONALITY
-// ========================
-
-// Initialize edit section functionality when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('[INFO] Initializing edit section functionality');
-    
-    // Set images as default active section
-    switchEditSubsection('images');
-    
-    // Initialize file upload handlers
-    initializeFileUploads();
-});
-
-// File upload functionality
-function initializeFileUploads() {
-    console.log('[INFO] Initializing file upload handlers');
-    
-    // Images upload
-    const imageUpload = document.getElementById('imageUpload');
-    const imagePreview = document.getElementById('imagePreview');
-    
-    if (imageUpload && imagePreview) {
-        imageUpload.addEventListener('change', function(e) {
-            handleImageUpload(e.target.files, imagePreview);
-        });
-        console.log('[INFO] Image upload handler added');
-    }
-    
-    // Graphics upload
-    const graphicsUpload = document.getElementById('graphicsUpload');
-    const graphicsPreview = document.getElementById('graphicsPreview');
-    
-    if (graphicsUpload && graphicsPreview) {
-        graphicsUpload.addEventListener('change', function(e) {
-            handleGraphicsUpload(e.target.files, graphicsPreview);
-        });
-        console.log('[INFO] Graphics upload handler added');
-    }
-    
-    // Videos upload
-    const videoUpload = document.getElementById('videoUpload');
-    const videoPreview = document.getElementById('videoPreview');
-    
-    if (videoUpload && videoPreview) {
-        videoUpload.addEventListener('change', function(e) {
-            handleVideoUpload(e.target.files, videoPreview);
-        });
-        console.log('[INFO] Video upload handler added');
-    }
-}
-
-// Handle image file uploads
-function handleImageUpload(files, previewContainer) {
-    console.log(`[INFO] Processing ${files.length} image files`);
-    
-    Array.from(files).forEach((file, index) => {
-        if (!file.type.startsWith('image/')) {
-            console.warn(`[WARN] File ${file.name} is not an image`);
-            showNotification(`${file.name} is not a valid image file`, 'warning');
-            return;
-        }
-        
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const imageDiv = document.createElement('div');
-            imageDiv.className = 'image-item';
-            imageDiv.innerHTML = `
-                <img src="${e.target.result}" alt="${file.name}" style="max-width: 200px; max-height: 150px; border-radius: 8px; margin: 5px;">
-                <div class="image-info">
-                    <p style="font-size: 12px; margin: 5px 0;">${file.name}</p>
-                    <button onclick="this.parentElement.parentElement.remove()" 
-                            style="background: #ff4757; color: white; border: none; border-radius: 4px; padding: 2px 8px; cursor: pointer;">
-                        Remove
-                    </button>
-                </div>
-            `;
-            previewContainer.appendChild(imageDiv);
+class WebbyInterface {
+    constructor() {
+        this.elements = this.initializeElements();
+        this.state = {
+            iframeAccessible: false,
+            iframeDocument: null,
+            editModeActive: false,
+            currentSection: 'chat',
+            currentEditSubsection: 'images',
+            editableElements: new Map() // Store editable elements for easy access
         };
-        reader.readAsDataURL(file);
-    });
-    
-    showNotification(`${files.length} image(s) uploaded successfully`, 'success');
-}
-
-// Handle graphics file uploads (similar to images but with different styling)
-function handleGraphicsUpload(files, previewContainer) {
-    console.log(`[INFO] Processing ${files.length} graphics files`);
-    
-    Array.from(files).forEach((file, index) => {
-        if (!file.type.startsWith('image/')) {
-            console.warn(`[WARN] File ${file.name} is not a graphics file`);
-            showNotification(`${file.name} is not a valid graphics file`, 'warning');
-            return;
-        }
-        
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const graphicsDiv = document.createElement('div');
-            graphicsDiv.className = 'graphics-item';
-            graphicsDiv.innerHTML = `
-                <img src="${e.target.result}" alt="${file.name}" style="max-width: 180px; max-height: 120px; border-radius: 8px; margin: 5px; border: 2px solid #cb6ce6;">
-                <div class="graphics-info">
-                    <p style="font-size: 12px; margin: 5px 0; color: #cb6ce6;">${file.name}</p>
-                    <button onclick="this.parentElement.parentElement.remove()" 
-                            style="background: #cb6ce6; color: white; border: none; border-radius: 4px; padding: 2px 8px; cursor: pointer;">
-                        Remove
-                    </button>
-                </div>
-            `;
-            previewContainer.appendChild(graphicsDiv);
-        };
-        reader.readAsDataURL(file);
-    });
-    
-    showNotification(`${files.length} graphics file(s) uploaded successfully`, 'success');
-}
-
-// Handle video file uploads
-function handleVideoUpload(files, previewContainer) {
-    console.log(`[INFO] Processing ${files.length} video files`);
-    
-    Array.from(files).forEach((file, index) => {
-        if (!file.type.startsWith('video/')) {
-            console.warn(`[WARN] File ${file.name} is not a video`);
-            showNotification(`${file.name} is not a valid video file`, 'warning');
-            return;
-        }
-        
-        const videoURL = URL.createObjectURL(file);
-        const videoDiv = document.createElement('div');
-        videoDiv.className = 'video-item';
-        videoDiv.innerHTML = `
-            <video controls style="max-width: 300px; max-height: 200px; border-radius: 8px; margin: 5px;">
-                <source src="${videoURL}" type="${file.type}">
-                Your browser does not support the video tag.
-            </video>
-            <div class="video-info">
-                <p style="font-size: 12px; margin: 5px 0;">${file.name}</p>
-                <button onclick="this.parentElement.parentElement.remove(); URL.revokeObjectURL('${videoURL}')" 
-                        style="background: #2ed573; color: white; border: none; border-radius: 4px; padding: 2px 8px; cursor: pointer;">
-                    Remove
-                </button>
-            </div>
-        `;
-        previewContainer.appendChild(videoDiv);
-    });
-    
-    showNotification(`${files.length} video(s) uploaded successfully`, 'success');
-}
-
-// Enhanced notification function specifically for edit section
-function showEditNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = `edit-notification ${type}`;
-    notification.textContent = message;
-    
-    // Position notification relative to edit section
-    const editSection = document.getElementById('EditSection');
-    const rect = editSection ? editSection.getBoundingClientRect() : { top: 20, right: 20 };
-    
-    notification.style.cssText = `
-        position: fixed;
-        top: ${rect.top + 10}px;
-        right: 20px;
-        background: ${type === 'success' ? '#2ed573' : type === 'error' ? '#ff4757' : type === 'warning' ? '#ffa502' : '#cb6ce6'};
-        color: white;
-        padding: 10px 16px;
-        border-radius: 6px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        z-index: 1000;
-        font-size: 14px;
-        font-weight: 500;
-        animation: slideInFromRight 0.3s ease;
-        max-width: 250px;
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Auto remove after 3 seconds
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.style.animation = 'slideOutToRight 0.3s ease';
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.remove();
-                }
-            }, 300);
-        }
-    }, 3000);
-}
-
-// Add animation styles for edit notifications
-const editNotificationStyles = document.createElement('style');
-editNotificationStyles.textContent = `
-    @keyframes slideInFromRight {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
+        this.init();
     }
-    @keyframes slideOutToRight {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-    }
-    
-    .edit-section {
-        transition: all 0.3s ease;
-    }
-    
-    .edit-section.hidden {
-        display: none;
-    }
-    
-    .edit-section.active {
-        display: block;
-        animation: fadeInUp 0.3s ease;
-    }
-    
-    @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .image-item, .graphics-item, .video-item {
-        display: inline-block;
-        margin: 10px;
-        padding: 10px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 10px;
-        text-align: center;
-        transition: transform 0.2s ease;
-    }
-    
-    .image-item:hover, .graphics-item:hover, .video-item:hover {
-        transform: translateY(-2px);
-    }
-`;
 
-// Only add styles if they don't exist
-if (!document.querySelector('#edit-notification-styles')) {
-    editNotificationStyles.id = 'edit-notification-styles';
-    document.head.appendChild(editNotificationStyles);
-}
-
-// Override the showNotification function for edit section
-const originalShowNotification = window.showNotification;
-window.showNotification = function(message, type = 'info') {
-    // Check if we're in edit mode
-    const editSection = document.getElementById('EditSection');
-    if (editSection && !editSection.classList.contains('hidden')) {
-        showEditNotification(message, type);
-    } else if (originalShowNotification) {
-        originalShowNotification(message, type);
-    } else {
-        console.log(`[NOTIFICATION] ${type.toUpperCase()}: ${message}`);
-    }
-};
-
-console.log('[INFO] Edit section JavaScript loaded successfully');
-
-// ========================
-// EDIT SECTION FUNCTIONALITY
-// ========================
-
-
-
-// ========================
-// UTILITY FUNCTIONS
-// ========================
-
-function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.textContent = message;
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#cb6ce6'};
-        color: white;
-        padding: 12px 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        z-index: 1000;
-        font-weight: 500;
-        animation: slideInRight 0.3s ease;
-    `;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.style.animation = 'slideOutRight 0.3s ease';
-        setTimeout(() => {
-            if (document.body.contains(notification)) {
-                document.body.removeChild(notification);
-            }
-        }, 300);
-    }, 3000);
-}
-
-// Add CSS for notification animations
-const notificationStyles = document.createElement('style');
-notificationStyles.textContent = `
-    @keyframes slideInRight {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes slideOutRight {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-    }
-`;
-document.head.appendChild(notificationStyles);
-
-// Enter key support for chat
-if (input) {
-    input.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            if (form) form.dispatchEvent(new Event('submit'));
-        }
-    });
-}
-
-// ========================
-// ADDITIONAL TOOL FUNCTIONALITY - ISSUE 7: Backend endpoints don't exist
-// ========================
-
-// Download functionality
-const downloadBtn = document.querySelector('[title="Download preview"]');
-if (downloadBtn) {
-    downloadBtn.addEventListener('click', function() {
-        console.log('[INFO] Download requested');
-        showNotification('Download feature not implemented yet', 'info');
-        
-        // COMMENTED OUT - This endpoint doesn't exist
-        /*
-        fetch('/download-preview', {
-            method: 'POST'
-        })
-        .then(res => res.blob())
-        .then(blob => {
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'webby-preview.html';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-            showNotification('Download started!', 'success');
-        })
-        .catch(err => {
-            console.error('[ERROR] Download failed:', err);
-            showNotification('Download failed', 'error');
-        });
-        */
-    });
-}
-
-// Full screen functionality
-const fullscreenBtn = document.querySelector('[title="Full screen preview"]');
-if (fullscreenBtn) {
-    fullscreenBtn.addEventListener('click', function() {
-        console.log('[INFO] Full screen requested');
-        
-        if (resultFrame) {
-            if (resultFrame.requestFullscreen) {
-                resultFrame.requestFullscreen();
-            } else if (resultFrame.webkitRequestFullscreen) {
-                resultFrame.webkitRequestFullscreen();
-            } else if (resultFrame.msRequestFullscreen) {
-                resultFrame.msRequestFullscreen();
-            }
-        }
-    });
-}
-
-// ========================
-// INITIALIZATION
-// ========================
-
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('[INFO] DOM fully loaded');
-    
-    if (input) {
-        input.focus();
-    }
-    
-    if (stylePreview) {
-        updatePreview();
-    }
-    
-    if (typeof bootstrap !== 'undefined') {
-        console.log('[INFO] Bootstrap loaded successfully');
-    } else {
-        console.warn('[WARN] Bootstrap not loaded');
-    }
-    
-    console.log('[INFO] Webby AI interface initialized');
-});
-
-// ========================
-// RESPONSIVE BEHAVIOR
-// ========================
-
-window.addEventListener('resize', function() {
-    if (resultFrame) {
-        if (window.innerWidth <= 768) {
-            resultFrame.style.height = '400px';
-        } else {
-            resultFrame.style.height = '502px';
-        }
-    }
-});
-
-// ========================
-// ERROR HANDLING - ISSUE 8: This was causing the "unexpected error" message
-// ========================
-
-
-// ========================
-// EDIT GENERATED WEBSITE - ISSUE 9: Syntax errors
-// ========================
-
-// Enhanced save functionality with proper error handling
-document.addEventListener("DOMContentLoaded", () => {
-    const previewIframe = document.getElementById('resultFrame');
-    let iframeAccessible = false;
-
-    // Test iframe accessibility and make elements editable
-    if (previewIframe) {
-        previewIframe.onload = () => {
-            try {
-                const doc = previewIframe.contentDocument || previewIframe.contentWindow.document;
-                if (doc && doc.body) {
-                    // Successfully accessed iframe content
-                    iframeAccessible = true;
-                    
-                    const elements = doc.querySelectorAll('h1, h2, h3, h4, h5, h6, p, a, img, span, div, button, li, ul, ol, form, input');
-                    elements.forEach(el => {
-                        el.setAttribute('contenteditable', 'true');
-                        el.style.outline = '1px dashed rgba(203, 108, 230, 0.5)';
-                        el.style.cursor = 'text';
-                        
-                        // Add hover effect for better UX
-                        el.addEventListener('mouseenter', () => {
-                            el.style.outline = '2px solid #cb6ce6';
-                        });
-                        
-                        el.addEventListener('mouseleave', () => {
-                            el.style.outline = '1px dashed rgba(203, 108, 230, 0.5)';
-                        });
-                    });
-                    
-                    console.log('[SUCCESS] Made elements editable:', elements.length, 'elements');
-                    showNotification('Elements are now editable!', 'success');
-                } else {
-                    throw new Error('Cannot access document body');
-                }
-            } catch (error) {
-                console.log('[WARNING] Cannot access iframe content:', error.message);
-                iframeAccessible = false;
-                showNotification('Direct editing not available (cross-origin)', 'warning');
-            }
+    // Initialize all DOM elements with proper error handling
+    initializeElements() {
+        const elements = {
+            form: document.querySelector('#chat-form'),
+            input: document.querySelector('.form-control'),
+            chatBox: document.querySelector('.chat-box'),
+            restartBtn: document.getElementById('restartBtn'),
+            resultFrame: document.getElementById('resultFrame'),
+            loaderOverlay: document.getElementById('loader-overlay'),
+            chatTool: document.getElementById('chatTool'),
+            editTool: document.getElementById('editTool'),
+            chatSection: document.getElementById('chatSection'),
+            editSection: document.getElementById('EditSection'),
+            sectionTitle: document.getElementById('section-title'),
+            toggleEdit: document.getElementById('toggleEditBtn'),
         };
 
-        // Handle iframe load errors
-        previewIframe.onerror = () => {
-            console.error('[ERROR] Failed to load iframe');
-            showNotification('Failed to load preview', 'error');
-        };
-    }
-
-    // Fixed: Use class selector instead of ID
-    const saveBtn = document.querySelector(".save-changes");
-
-    if (saveBtn) {
-        saveBtn.addEventListener("click", function () {
-            // Show loading state
-            saveBtn.disabled = true;
-            saveBtn.innerHTML = '⏳';
-            saveBtn.title = 'Saving...';
-
-            if (!iframeAccessible) {
-                showNotification('Cannot save: iframe content not accessible', 'error');
-                resetSaveButton();
-                return;
-            }
-
-            try {
-                const iframe = document.getElementById('resultFrame');
-                const editableDoc = iframe.contentDocument || iframe.contentWindow.document;
-                
-                if (!editableDoc) {
-                    throw new Error('Cannot access iframe document');
-                }
-
-                // Clean up the HTML before saving
-                const clonedDoc = editableDoc.cloneNode(true);
-                const elements = clonedDoc.querySelectorAll('[contenteditable]');
-                
-                // Remove editing attributes
-                elements.forEach(el => {
-                    el.removeAttribute('contenteditable');
-                    el.style.outline = '';
-                    el.style.cursor = '';
-                });
-
-                const updatedHtml = clonedDoc.documentElement.outerHTML;
-
-                // Validate HTML content
-                if (!updatedHtml || updatedHtml.length < 100) {
-                    throw new Error('Invalid HTML content');
-                }
-
-                console.log('[INFO] Saving HTML content, length:', updatedHtml.length);
-
-                fetch("/update_site", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-Requested-With": "XMLHttpRequest"
-                    },
-                    body: JSON.stringify({ html_code: updatedHtml }),
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('[SUCCESS] Site updated:', data);
-                    showNotification(data.message || "Changes saved successfully!", 'success');
-                    resetSaveButton();
-                })
-                .catch(error => {
-                    console.error('[ERROR] Save failed:', error);
-                    showNotification(`Failed to save: ${error.message}`, 'error');
-                    resetSaveButton();
-                });
-
-            } catch (error) {
-                console.error('[ERROR] Save operation failed:', error);
-                showNotification(`Save error: ${error.message}`, 'error');
-                resetSaveButton();
+        // Validate critical elements
+        const criticalElements = ['form', 'input', 'chatBox'];
+        criticalElements.forEach(key => {
+            if (!elements[key]) {
+                console.error(`[ERROR] Critical element ${key} not found`);
             }
         });
-    } else {
-        console.warn("⚠️ Save Changes button not found - check class selector");
+
+        return elements;
     }
 
-    // Helper function to reset save button
-    function resetSaveButton() {
-        if (saveBtn) {
-            saveBtn.disabled = false;
-            saveBtn.innerHTML = '💾';
-            saveBtn.title = 'Save changes';
-        }
+    init() {
+        this.setupEventListeners();
+        this.setupNotificationSystem();
+        this.setupIframeHandling();
+        this.appendWelcomeMessage();
+        this.injectStyles();
+        this.toggleEditMode();
     }
 
-    // Enhanced notification system
-    function showNotification(message, type = 'info') {
-        // Remove existing notifications
-        const existingNotification = document.querySelector('.save-notification');
-        if (existingNotification) {
-            existingNotification.remove();
+    // Centralized event listener setup
+    setupEventListeners() {
+        // Chat form submission
+        if (this.elements.form && this.elements.input) {
+            this.elements.form.addEventListener('submit', (e) => this.handleChatSubmit(e));
+            this.elements.input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    this.elements.form.dispatchEvent(new Event('submit'));
+                }
+            });
         }
 
-        // Create notification element
+        // Restart button
+        if (this.elements.restartBtn) {
+            this.elements.restartBtn.addEventListener('click', () => this.handleRestart());
+        }
+
+        // Section switching
+        if (this.elements.chatTool) {
+            this.elements.chatTool.addEventListener('click', () => this.switchSection('chat'));
+        }
+        if (this.elements.editTool) {
+            this.elements.editTool.addEventListener('click', () => this.switchSection('edit'));
+        }
+
+        // Window resize
+        window.addEventListener('resize', () => this.handleResize());
+
+        // DOM loaded
+        document.addEventListener('DOMContentLoaded', () => this.handleDOMLoaded());
+    }
+
+    // Unified notification system
+    setupNotificationSystem() {
+        this.notificationQueue = [];
+        this.maxNotifications = 3;
+    }
+
+    showNotification(message, type = 'info', duration = 3000) {
+        // Remove oldest notification if queue is full
+        if (this.notificationQueue.length >= this.maxNotifications) {
+            const oldest = this.notificationQueue.shift();
+            if (oldest && oldest.element.parentNode) {
+                oldest.element.remove();
+            }
+        }
+
+        const notification = this.createNotificationElement(message, type);
+        document.body.appendChild(notification);
+
+        const notificationObj = {
+            element: notification,
+            timeout: setTimeout(() => this.removeNotification(notification), duration)
+        };
+
+        this.notificationQueue.push(notificationObj);
+    }
+
+    createNotificationElement(message, type) {
         const notification = document.createElement('div');
-        notification.className = `save-notification ${type}`;
+        notification.className = `webby-notification ${type}`;
         notification.textContent = message;
-        
-        // Style the notification
+
+        const colors = {
+            success: 'linear-gradient(135deg, #4ecdc4, #44a08d)',
+            error: 'linear-gradient(135deg, #ff6b6b, #ee5a52)',
+            warning: 'linear-gradient(135deg, #ffeaa7, #fdcb6e)',
+            info: 'linear-gradient(135deg, #cb6ce6, #aa41c4)'
+        };
+
         notification.style.cssText = `
             position: fixed;
-            top: 20px;
+            top: ${20 + this.notificationQueue.length * 70}px;
             right: 20px;
-            background: ${getNotificationColor(type)};
+            background: ${colors[type] || colors.info};
             color: white;
             padding: 12px 20px;
             border-radius: 8px;
@@ -865,13 +139,22 @@ document.addEventListener("DOMContentLoaded", () => {
             animation: slideInRight 0.3s ease-out;
             max-width: 300px;
             word-wrap: break-word;
+            cursor: pointer;
         `;
 
-        document.body.appendChild(notification);
+        // Click to dismiss
+        notification.addEventListener('click', () => this.removeNotification(notification));
 
-        // Auto-remove after 4 seconds
-        setTimeout(() => {
-            if (notification && notification.parentNode) {
+        return notification;
+    }
+
+    removeNotification(notification) {
+        const index = this.notificationQueue.findIndex(n => n.element === notification);
+        if (index > -1) {
+            const notificationObj = this.notificationQueue.splice(index, 1)[0];
+            clearTimeout(notificationObj.timeout);
+
+            if (notification.parentNode) {
                 notification.style.animation = 'slideOutRight 0.3s ease-out';
                 setTimeout(() => {
                     if (notification.parentNode) {
@@ -879,46 +162,505 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 }, 300);
             }
-        }, 4000);
+        }
+
+        // Reposition remaining notifications
+        this.repositionNotifications();
     }
 
-    function getNotificationColor(type) {
-        const colors = {
-            success: 'linear-gradient(135deg, #4ecdc4, #44a08d)',
-            error: 'linear-gradient(135deg, #ff6b6b, #ee5a52)',
-            warning: 'linear-gradient(135deg, #ffeaa7, #fdcb6e)',
-            info: 'linear-gradient(135deg, #cb6ce6, #aa41c4)'
-        };
-        return colors[type] || colors.info;
+    repositionNotifications() {
+        this.notificationQueue.forEach((notificationObj, index) => {
+            notificationObj.element.style.top = `${20 + index * 70}px`;
+        });
     }
 
-    // Add CSS animations if not already present
-    if (!document.querySelector('#save-notification-styles')) {
-        const style = document.createElement('style');
-        style.id = 'save-notification-styles';
-        style.textContent = `
+    // Chat functionality
+    async handleChatSubmit(e) {
+        e.preventDefault();
+
+        const message = this.elements.input.value.trim();
+        if (!message) return;
+
+        this.appendMessage('user', message);
+        this.elements.input.value = '';
+        this.showLoader();
+
+        try {
+            const response = await fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            this.appendMessage('bot', data.reply);
+
+            if (data.site_id && this.elements.resultFrame) {
+                this.elements.resultFrame.src = `/sitepreview/${data.site_id}`;
+            }
+        } catch (error) {
+            console.error('[ERROR] Chat request failed:', error);
+            this.appendMessage('bot', 'Error contacting Webby.');
+            this.showNotification('Failed to send message', 'error');
+        } finally {
+            this.hideLoader();
+        }
+    }
+
+    appendMessage(sender, text) {
+        if (!this.elements.chatBox) return;
+
+        const msg = document.createElement('div');
+        msg.classList.add(`${sender}-message`);
+        msg.textContent = text;
+
+        this.elements.chatBox.appendChild(msg);
+        this.elements.chatBox.scrollTop = this.elements.chatBox.scrollHeight;
+    }
+
+    appendWelcomeMessage() {
+        this.appendMessage('bot', 'Welcome to Webby! Tell me whats the name of your website?');
+    }
+
+    // Loader management
+    showLoader() {
+        if (this.elements.loaderOverlay) {
+            this.elements.loaderOverlay.style.display = 'flex';
+        }
+    }
+
+    hideLoader() {
+        if (this.elements.loaderOverlay) {
+            this.elements.loaderOverlay.style.display = 'none';
+        }
+    }
+
+    // Section switching
+    switchSection(sectionType) {
+        // Remove active class from all tools
+        document.querySelectorAll('.tool-icons').forEach(tool => {
+            tool.classList.remove('active');
+        });
+
+        if (sectionType === 'chat') {
+            this.elements.chatSection?.classList.remove('hidden');
+            this.elements.editSection?.classList.add('hidden');
+            this.elements.chatTool?.classList.add('active');
+            if (this.elements.sectionTitle) {
+                this.elements.sectionTitle.innerHTML = '💬 Webby <span class="status-indicator"></span>';
+            }
+        } else if (sectionType === 'edit') {
+            this.elements.editSection?.classList.remove('hidden');
+            this.elements.chatSection?.classList.add('hidden');
+            this.elements.editTool?.classList.add('active');
+            if (this.elements.sectionTitle) {
+                this.elements.sectionTitle.innerHTML = '🎨 Edit <span class="status-indicator"></span>';
+            }
+        }
+
+        this.state.currentSection = sectionType;
+    }
+
+    // Iframe handling
+    setupIframeHandling() {
+        if (this.elements.resultFrame) {
+            this.elements.resultFrame.addEventListener('load', () => {
+                this.hideLoader();
+                this.checkIframeAccessibility();
+            });
+            this.elements.resultFrame.addEventListener('error', () => {
+                this.showNotification('Failed to load preview', 'error');
+            });
+        }
+    }
+
+    checkIframeAccessibility() {
+        try {
+            const doc = this.elements.resultFrame.contentDocument ||
+                this.elements.resultFrame.contentWindow.document;
+
+            if (doc && doc.body) {
+                this.state.iframeAccessible = true;
+                this.state.iframeDocument = doc; // Store reference to iframe document
+
+                // Only make elements editable if edit mode is active
+                if (this.state.editModeActive) {
+                    this.makeElementsEditable(doc);
+                } else {
+                    console.log('[INFO] Iframe loaded but edit mode is inactive');
+                }
+            } else {
+                throw new Error('Cannot access document body');
+            }
+        } catch (error) {
+            console.log('[WARNING] Cannot access iframe content:', error.message);
+            this.state.iframeAccessible = false;
+            this.showNotification('Direct editing not available (cross-origin)', 'warning');
+        }
+    }
+
+    makeElementsEditable(doc) {
+        const elements = doc.querySelectorAll('h1, h2, h3, h4, h5, h6, p, a, span, div, button, li, img');
+
+        elements.forEach(el => {
+            el.setAttribute('contenteditable', 'true');
+            el.style.outline = '1px dashed rgba(203, 108, 230, 0.5)';
+            el.style.cursor = 'text';
+
+            // Create event listener functions
+            const mouseEnterHandler = () => {
+                el.style.outline = '2px solid #cb6ce6';
+            };
+
+            const mouseLeaveHandler = () => {
+                el.style.outline = '1px dashed rgba(203, 108, 230, 0.5)';
+            };
+
+            // Add event listeners
+            el.addEventListener('mouseenter', mouseEnterHandler);
+            el.addEventListener('mouseleave', mouseLeaveHandler);
+
+            // Store the element and its listeners for later removal
+            this.state.editableElements.set(el, {
+                mouseEnterHandler,
+                mouseLeaveHandler
+            });
+        });
+
+        this.showNotification('Elements are now editable!', 'success');
+    }
+
+    makeElementsNonEditable(doc) {
+        const elements = doc.querySelectorAll('[contenteditable="true"]');
+
+        elements.forEach(el => {
+            // Remove contenteditable attribute
+            el.removeAttribute('contenteditable');
+
+            // Remove all styling
+            el.style.outline = '';
+            el.style.cursor = '';
+
+            // Remove event listeners if they exist
+            const listeners = this.state.editableElements.get(el);
+            if (listeners) {
+                el.removeEventListener('mouseenter', listeners.mouseEnterHandler);
+                el.removeEventListener('mouseleave', listeners.mouseLeaveHandler);
+                this.state.editableElements.delete(el);
+            }
+        });
+
+        this.showNotification('Elements are no longer editable', 'info');
+    }
+
+    // Toggle edit mode functionality
+    toggleEditMode() {
+        if (this.elements.toggleEdit) {
+            this.elements.toggleEdit.addEventListener('click', () => {
+                // Toggle the edit mode state
+                this.state.editModeActive = !this.state.editModeActive;
+
+                if (this.state.editModeActive) {
+                    // Enable edit mode
+                    this.elements.toggleEdit.classList.add('active');
+                    //this.showNotification('Edit mode enabled', 'success');
+
+                    // Make elements editable if iframe is accessible
+                    if (this.state.iframeAccessible && this.state.iframeDocument) {
+                        this.makeElementsEditable(this.state.iframeDocument);
+                    } else if (this.state.iframeAccessible) {
+                        // Fallback: try to get document again
+                        const doc = this.elements.resultFrame.contentDocument ||
+                            this.elements.resultFrame.contentWindow.document;
+                        if (doc && doc.body) {
+                            this.state.iframeDocument = doc;
+                            this.makeElementsEditable(doc);
+                        }
+                    } else {
+                        this.showNotification('No website loaded to edit', 'warning');
+                    }
+                } else {
+                    // Disable edit mode
+                    this.elements.toggleEdit.classList.remove('active');
+                    //this.showNotification('Edit mode disabled', 'info');
+
+                    // Make elements non-editable if iframe is accessible
+                    if (this.state.iframeAccessible && this.state.iframeDocument) {
+                        this.makeElementsNonEditable(this.state.iframeDocument);
+                    }
+                }
+            });
+        } else {
+            console.warn('[WARN] Toggle edit button not found');
+        }
+    }
+
+    // Utility methods
+    handleRestart() {
+        fetch('/restart', { method: 'POST' })
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                this.appendMessage('bot', data.reply);
+                if (this.elements.resultFrame) {
+                    this.elements.resultFrame.src = '';
+                }
+
+                // Reset edit mode state and clear editableElements map
+                this.state.editModeActive = false;
+                this.state.iframeAccessible = false;
+                this.state.iframeDocument = null;
+                this.state.editableElements.clear(); // Clear the map
+
+                if (this.elements.toggleEdit) {
+                    this.elements.toggleEdit.classList.remove('active');
+                }
+
+                this.showNotification('Session restarted', 'success');
+            })
+            .catch(error => {
+                console.error('[ERROR] Restart failed:', error);
+                this.showNotification('Error restarting session', 'error');
+            });
+    }
+
+
+    handleResize() {
+        if (this.elements.resultFrame) {
+            this.elements.resultFrame.style.height = window.innerWidth <= 768 ? '400px' : '502px';
+        }
+    }
+
+    handleDOMLoaded() {
+        if (this.elements.input) {
+            this.elements.input.focus();
+        }
+        this.showNotification('Webby AI interface initialized', 'success');
+    }
+
+    // Inject required styles
+    injectStyles() {
+        if (document.querySelector('#webby-styles')) return;
+
+        const styles = document.createElement('style');
+        styles.id = 'webby-styles';
+        styles.textContent = `
             @keyframes slideInRight {
-                from {
-                    opacity: 0;
-                    transform: translateX(100%);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateX(0);
-                }
+                from { opacity: 0; transform: translateX(100%); }
+                to { opacity: 1; transform: translateX(0); }
             }
             
             @keyframes slideOutRight {
-                from {
-                    opacity: 1;
-                    transform: translateX(0);
-                }
-                to {
-                    opacity: 0;
-                    transform: translateX(100%);
-                }
+                from { opacity: 1; transform: translateX(0); }
+                to { opacity: 0; transform: translateX(100%); }
+            }
+            
+            @keyframes fadeInUp {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            
+            .webby-notification {
+                transition: top 0.3s ease;
+            }
+            
+            .edit-section {
+                transition: all 0.3s ease;
+            }
+            
+            .edit-section.hidden {
+                display: none;
+            }
+            
+            .edit-section.active {
+                display: block;
+                animation: fadeInUp 0.3s ease;
+            }
+
+            /* Edit mode toggle button styles */
+            #toggleEditBtn {
+                transition: all 0.3s ease;
+            }
+
+            #toggleEditBtn.active {
+                background: linear-gradient(135deg, #4ecdc4, #44a08d) !important;
+                color: white !important;
+                box-shadow: 0 4px 12px rgba(78, 205, 196, 0.4);
+            }
+
+            /* Editable elements highlight */
+            [contenteditable="true"] {
+                transition: all 0.2s ease;
+            }
+
+            [contenteditable="true"]:focus {
+                outline: 2px solid #cb6ce6 !important;
+                background: rgba(203, 108, 230, 0.05);
             }
         `;
-        document.head.appendChild(style);
+
+        document.head.appendChild(styles);
     }
-});
+
+    // Public API for external use
+    getState() {
+        return { ...this.state };
+    }
+
+    updateState(newState) {
+        this.state = { ...this.state, ...newState };
+    }
+
+    // Helper method to manually trigger edit mode (for debugging/testing)
+    setEditMode(enabled) {
+        this.state.editModeActive = enabled;
+
+        if (this.elements.toggleEdit) {
+            if (enabled) {
+                this.elements.toggleEdit.classList.add('active');
+            } else {
+                this.elements.toggleEdit.classList.remove('active');
+            }
+        }
+
+        if (this.state.iframeAccessible && this.state.iframeDocument) {
+            if (enabled) {
+                this.makeElementsEditable(this.state.iframeDocument);
+            } else {
+                this.makeElementsNonEditable(this.state.iframeDocument);
+            }
+        }
+    }
+}
+
+// File Upload Manager Class
+class FileUploadManager {
+    constructor(webbyInterface) {
+        this.webby = webbyInterface;
+        this.allowedTypes = {
+            images: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+            graphics: ['image/svg+xml', 'image/png', 'image/jpeg'],
+            videos: ['video/mp4', 'video/webm', 'video/ogg']
+        };
+        this.init();
+    }
+
+    init() {
+        this.setupUploadHandlers();
+    }
+
+    setupUploadHandlers() {
+        const uploadTypes = ['image', 'graphics', 'video'];
+
+        uploadTypes.forEach(type => {
+            const upload = document.getElementById(`${type}Upload`);
+            const preview = document.getElementById(`${type}Preview`);
+
+            if (upload && preview) {
+                upload.addEventListener('change', (e) => {
+                    this.handleFileUpload(e.target.files, type, preview);
+                });
+            }
+        });
+    }
+
+    handleFileUpload(files, type, previewContainer) {
+        const validFiles = Array.from(files).filter(file =>
+            this.isValidFileType(file, type)
+        );
+
+        if (validFiles.length !== files.length) {
+            const invalidCount = files.length - validFiles.length;
+            this.webby.showNotification(
+                `${invalidCount} file(s) skipped - invalid type for ${type}`,
+                'warning'
+            );
+        }
+
+        validFiles.forEach(file => {
+            this.createFilePreview(file, type, previewContainer);
+        });
+
+        if (validFiles.length > 0) {
+            this.webby.showNotification(
+                `${validFiles.length} ${type} file(s) uploaded successfully`,
+                'success'
+            );
+        }
+    }
+
+    isValidFileType(file, uploadType) {
+        const allowedForType = this.allowedTypes[uploadType + 's'] || [];
+        return allowedForType.includes(file.type);
+    }
+
+    createFilePreview(file, type, container) {
+        const fileURL = URL.createObjectURL(file);
+        const previewDiv = document.createElement('div');
+        previewDiv.className = `${type}-item`;
+
+        if (type === 'video') {
+            previewDiv.innerHTML = `
+                <video controls style="max-width: 300px; max-height: 200px; border-radius: 8px; margin: 5px;">
+                    <source src="${fileURL}" type="${file.type}">
+                    Your browser does not support the video tag.
+                </video>
+                <div class="file-info">
+                    <p style="font-size: 12px; margin: 5px 0;">${file.name}</p>
+                    <button onclick="this.parentElement.parentElement.remove(); URL.revokeObjectURL('${fileURL}')" 
+                            style="background: #2ed573; color: white; border: none; border-radius: 4px; padding: 2px 8px; cursor: pointer;">
+                        Remove
+                    </button>
+                </div>
+            `;
+        } else {
+            previewDiv.innerHTML = `
+                <img src="${fileURL}" alt="${file.name}" style="max-width: 200px; max-height: 150px; border-radius: 8px; margin: 5px;">
+                <div class="file-info">
+                    <p style="font-size: 12px; margin: 5px 0;">${file.name}</p>
+                    <button onclick="this.parentElement.parentElement.remove(); URL.revokeObjectURL('${fileURL}')" 
+                            style="background: #ff4757; color: white; border: none; border-radius: 4px; padding: 2px 8px; cursor: pointer;">
+                        Remove
+                    </button>
+                </div>
+            `;
+        }
+
+        container.appendChild(previewDiv);
+    }
+}
+
+// Initialize the application
+let webbyApp;
+let fileUploadManager;
+
+// Wait for DOM to be ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeWebby);
+} else {
+    initializeWebby();
+}
+
+function initializeWebby() {
+    try {
+        webbyApp = new WebbyInterface();
+        fileUploadManager = new FileUploadManager(webbyApp);
+        console.log('[SUCCESS] Webby application initialized');
+    } catch (error) {
+        console.error('[ERROR] Failed to initialize Webby:', error);
+        // Fallback notification
+        alert('Failed to initialize Webby interface. Please refresh the page.');
+    }
+}
+
+// Export for external access if needed
+window.WebbyApp = {
+    instance: () => webbyApp,
+    fileManager: () => fileUploadManager
+};

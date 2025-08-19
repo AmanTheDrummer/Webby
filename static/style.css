@@ -315,8 +315,8 @@ body {
 
 .tool-icons {
     filter: brightness(0) invert(1);
-    width: 50px;
-    height: 50px;
+    width: 46px;
+    height: 46px;
     cursor: pointer;
     transition: all 0.3s ease;
     padding: 10px;
@@ -328,15 +328,11 @@ body {
 
 .tool-icons:hover {
     transform: scale(1.1);
-    background-color: rgba(203, 108, 230, 0.2);
-    border-color: #cb6ce6;
     filter: brightness(0) invert(1) sepia(1) saturate(5) hue-rotate(270deg);
 }
 
 .tool-icons.active {
-    background-color: rgba(203, 108, 230, 0.3);
-    border-color: #cb6ce6;
-    transform: scale(1.05);
+    transform: scale(1.1);
     filter: brightness(0) invert(1) sepia(1) saturate(5) hue-rotate(270deg);
 }
 
@@ -1122,23 +1118,29 @@ body.signup-page {
 /* ======================== */
 
 .save-changes {
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
-    border: 2px solid transparent !important;
-    color: white !important;
     font-weight: 600 !important;
 }
 
 .save-changes:hover {
-    background: linear-gradient(135deg, #218838 0%, #1aa085 100%) !important;
-    border-color: #28a745 !important;
     transform: scale(1.05) !important;
-    filter: none !important;
 }
 
 .save-changes.active {
-    background: linear-gradient(135deg, #218838 0%, #1aa085 100%) !important;
-    border-color: #28a745 !important;
+    transform: scale(1.1) !important;
     filter: none !important;
+}
+
+.toggle-edit {
+    font-weight: 600 !important;
+}
+
+.toggle-edit:hover {
+    transform: scale(1.05) !important;
+}
+
+.toggle-edit.active {
+    transform: scale(1.1) !important;
+    filter:none !important;
 }
 
 /* ===================== */
@@ -1235,10 +1237,6 @@ body.signup-page {
     .bot-message {
         border: 2px solid currentColor;
     }
-    
-    .tool-icons {
-        border: 2px solid currentColor;
-    }
 }
 
 /* Reduced motion support */
@@ -1288,16 +1286,17 @@ body.signup-page {
 }
 
 /* The spinner animation */
-#loader-overlay .spinner {
+#loader-overlay .loader {
     width: 60px;
     height: 60px;
     border: 8px solid #444; /* Darker grey */
     border-top: 8px solid #cb6ce6; /* Your brand's purple color */
     border-radius: 50%;
-    animation: spin 1.5s linear infinite;
+    animation: spin 1s infinite;
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    100% {
+        rotate: 360deg;
+    }
 }
