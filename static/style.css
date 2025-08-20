@@ -288,9 +288,9 @@ body {
     overflow-x: auto;
 }
 
-/* ============= */
+/* ================ */
 /* IFRAME & TOOLBAR */
-/* ============= */
+/* ================ */
 
 .iframe-container {
     background: #000;
@@ -1258,6 +1258,7 @@ body.signup-page {
         animation: none;
     }
 }
+
 /* ========== LOADER STYLES ========== */
 
 /* Make the iframe container a positioning context for the overlay */
@@ -1292,11 +1293,16 @@ body.signup-page {
     border: 8px solid #444; /* Darker grey */
     border-top: 8px solid #cb6ce6; /* Your brand's purple color */
     border-radius: 50%;
-    animation: spin 1s infinite;
+    /* animation: spin 1s linear infinite; */
 }
 
-@keyframes spin {
-    100% {
-        rotate: 360deg;
+/* @keyframes spin {
+    from {
+        transform: rotate(0deg);
     }
-}
+    to {
+        transform: rotate(360deg);
+    }
+} */
+
+

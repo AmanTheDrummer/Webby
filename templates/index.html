@@ -150,13 +150,17 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="col-lg-9 col-md-8">
+                    <!-- Preview Frame for generated -->
                     <div class="iframe-container">
                         <iframe src="/sitepreview/latest" id="resultFrame" class="preview-frame"
                             title="Generated website preview" loading="lazy"></iframe>
-                        <div class="loader"></div>
+                        <div id="loader-overlay">
+                            <div class="loader"></div>
+                        </div>
                     </div>
+
+                    <!-- Tool-Bar Icons -->
                     <div class="tool-bar d-flex justify-content-center align-items-center" role="toolbar"
                         aria-label="Tool selection">
                         <a><img src="/static/assets/icons/messages.svg" alt="chat" type="button"

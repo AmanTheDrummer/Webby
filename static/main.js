@@ -31,6 +31,7 @@ class WebbyInterface {
             editSection: document.getElementById('EditSection'),
             sectionTitle: document.getElementById('section-title'),
             toggleEdit: document.getElementById('toggleEditBtn'),
+            loaderSpinner: document.querySelector('.loader'),
         };
 
         // Validate critical elements
@@ -51,6 +52,19 @@ class WebbyInterface {
         this.appendWelcomeMessage();
         this.injectStyles();
         this.toggleEditMode();
+    }
+
+    // Loader Helper functions
+    showLoader() {
+        if (this.elements.loaderOverlay) {
+            this.elements.loaderOverlay.style.display = 'flex';
+        }
+    }
+
+    hideLoader() {
+        if (this.elements.loaderOverlay) {
+            this.elements.loaderOverlay.style.display = 'none';
+        }
     }
 
     // Centralized event listener setup
@@ -224,19 +238,6 @@ class WebbyInterface {
 
     appendWelcomeMessage() {
         this.appendMessage('bot', 'Welcome to Webby! Tell me whats the name of your website?');
-    }
-
-    // Loader management
-    showLoader() {
-        if (this.elements.loaderOverlay) {
-            this.elements.loaderOverlay.style.display = 'flex';
-        }
-    }
-
-    hideLoader() {
-        if (this.elements.loaderOverlay) {
-            this.elements.loaderOverlay.style.display = 'none';
-        }
     }
 
     // Section switching
