@@ -23,6 +23,7 @@ class WebbyInterface {
             input: document.querySelector('.form-control'),
             chatBox: document.querySelector('.chat-box'),
             restartBtn: document.getElementById('restartBtn'),
+            downloadBtn: document.getElementById('downloadBtn'),
             resultFrame: document.getElementById('resultFrame'),
             loaderOverlay: document.getElementById('loader-overlay'),
             chatTool: document.getElementById('chatTool'),
@@ -915,7 +916,16 @@ class FileUploadManager {
         container.appendChild(previewDiv);
     }
 }
-
+document.addEventListener('DOMContentLoaded', () => {
+    const downloadBtn = document.getElementById('downloadBtn');
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', () => {
+            console.log('[INFO] Download button clicked');
+            window.location.href = '/download';
+            
+        });
+    }
+});
 // Initialize the application
 let webbyApp;
 let fileUploadManager;
