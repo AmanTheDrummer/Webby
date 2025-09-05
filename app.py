@@ -4,6 +4,7 @@ import os
 import requests
 import psycopg2
 import uuid
+from flask import Response
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -478,7 +479,44 @@ def call_gemini(prompt):
     except Exception as e:
         print(f"[ERROR] Error calling Gemini: {e}")
         return None
-    
+@app.route('/download')
+def download_site():
+    if 'user_id' not in session:
+        return "Unauthorized", 401
+
+    user_id = session['user_id']
+
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT html_code, site_name
+            FROM websites
+            WHERE user_id = %s
+            ORDER BY created_at DESC
+            LIMIT 1
+        """, (user_id,))
+        
+        result = cur.fetchone()
+        cur.close()
+        conn.close()
+
+        if result:
+            html_code, site_name = result
+            filename = f"{site_name}.html"
+
+            return Response(
+                html_code,
+                mimetype="text/html",
+                headers={"Content-Disposition": f"attachment;filename={filename}"}
+            )
+        else:
+            return "No website found", 404
+
+    except Exception as e:
+        print(f"[ERROR] Failed to fetch for download: {e}")
+        return "Internal server error", 500
 # run the main app
 if __name__ == "__main__":
     print("[INFO] Starting Flask app...")
