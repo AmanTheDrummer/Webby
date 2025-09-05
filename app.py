@@ -20,6 +20,7 @@ QUESTIONS = [
 ]
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+UNSPLASH_KEY = os.environ.get("UNSPLASH_KEY")
 
 # Database connection function - creates fresh connection each time
 def get_db_connection():
@@ -313,6 +314,22 @@ def chat():
         else:
             print("[ERROR] Failed to get response from Gemini.")
             return jsonify({"reply": "Something went wrong while generating the website. Please try again."})
+
+# Interact with unsplash API to search for images
+@app.route("/api/unsplash")
+def unsplash_search():
+    query = request.args.get("q", "")
+    per_page = request.args.get("per_page", 12)
+
+    url = "https://api.unsplash.com/search/photos"
+    params = {
+        "query": query,
+        "per_page": per_page,
+        "client_id": UNSPLASH_KEY
+    }
+
+    res = requests.get(url, params=params)
+    return jsonify(res.json())
 
 # Serve the generated website from the database by ID
 @app.route('/sitepreview/<int:site_id>', methods=['GET'])

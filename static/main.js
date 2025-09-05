@@ -32,6 +32,9 @@ class WebbyInterface {
             sectionTitle: document.getElementById('section-title'),
             toggleEdit: document.getElementById('toggleEditBtn'),
             loaderSpinner: document.querySelector('.loader'),
+            editSearchButton: document.getElementById('edit-search-btn'),
+            queryInput: document.getElementById('unsplash-query'),
+            imageGallery: document.getElementById('image-gallery')
         };
 
         // Validate critical elements
@@ -52,6 +55,168 @@ class WebbyInterface {
         this.appendWelcomeMessage();
         this.injectStyles();
         this.toggleEditMode();
+        this.setupImageSearch(); // Fixed: properly call image search setup
+    }
+
+    // Fixed Image Search Setup
+    setupImageSearch() {
+        if (this.elements.editSearchButton && this.elements.queryInput && this.elements.imageGallery) {
+            this.elements.editSearchButton.addEventListener('click', () => {
+                this.handleImageSearch();
+            });
+
+            // Allow Enter key to trigger search
+            this.elements.queryInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    this.handleImageSearch();
+                }
+            });
+        } else {
+            console.warn('[WARN] Image search elements not found');
+        }
+    }
+
+    // Fixed Image Search Handler
+    async handleImageSearch() {
+        const query = this.elements.queryInput.value.trim();
+        if (!query) {
+            this.showNotification('Please enter a search term', 'warning');
+            return;
+        }
+
+        try {
+            // Show loading state
+            this.elements.imageGallery.innerHTML = '<div class="loading-images">Searching for images...</div>';
+            
+            const results = await this.searchUnsplashImages(query);
+            this.displayImageResults(results);
+            
+            if (results.length > 0) {
+                this.showNotification(`Found ${results.length} images`, 'success');
+            } else {
+                this.showNotification('No images found for this search', 'info');
+            }
+        } catch (error) {
+            console.error('[ERROR] Image search failed:', error);
+            this.showNotification('Failed to search images', 'error');
+            this.elements.imageGallery.innerHTML = '<div class="error-message">Failed to load images</div>';
+        }
+    }
+
+    // Fixed Unsplash API call
+    async searchUnsplashImages(query) {
+        try {
+            const response = await fetch(`/api/unsplash?q=${encodeURIComponent(query)}&per_page=12`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            return data.results || [];
+        } catch (error) {
+            console.error('[ERROR] Unsplash API call failed:', error);
+            throw error;
+        }
+    }
+
+    // Fixed Image Results Display
+    displayImageResults(images) {
+        if (!this.elements.imageGallery) return;
+
+        this.elements.imageGallery.innerHTML = '';
+
+        if (images.length === 0) {
+            this.elements.imageGallery.innerHTML = '<div class="no-results">No images found</div>';
+            return;
+        }
+
+        images.forEach(img => {
+            const imageElement = document.createElement('div');
+            imageElement.className = 'unsplash-image-container';
+            
+            imageElement.innerHTML = `
+                <img src="${img.urls.small}" 
+                     alt="${img.alt_description || 'Unsplash image'}" 
+                     class="unsplash-img"
+                     draggable="true"
+                     data-full-url="${img.urls.full}"
+                     data-regular-url="${img.urls.regular}">
+                <div class="image-overlay">
+                    <button class="use-image-btn" data-url="${img.urls.regular}">Use Image</button>
+                    <div class="image-info">
+                        <small>Photo by ${img.user.name}</small>
+                    </div>
+                </div>
+            `;
+
+            // Add drag and drop functionality
+            const imgEl = imageElement.querySelector('img');
+            imgEl.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', img.urls.regular);
+                e.dataTransfer.setData('text/uri-list', img.urls.regular);
+            });
+
+            // Add click to use functionality
+            const useBtn = imageElement.querySelector('.use-image-btn');
+            useBtn.addEventListener('click', () => {
+                this.useImage(img.urls.regular, img.alt_description || 'Selected image');
+            });
+
+            this.elements.imageGallery.appendChild(imageElement);
+        });
+    }
+
+    // Handle using selected image
+    useImage(imageUrl, altText) {
+        // If iframe is accessible and edit mode is active, try to insert image
+        if (this.state.iframeAccessible && this.state.iframeDocument && this.state.editModeActive) {
+            this.insertImageIntoIframe(imageUrl, altText);
+        } else {
+            // Copy URL to clipboard as fallback
+            this.copyToClipboard(imageUrl);
+            this.showNotification('Image URL copied to clipboard', 'success');
+        }
+    }
+
+    // Insert image into iframe if possible
+    insertImageIntoIframe(imageUrl, altText) {
+        try {
+            const doc = this.state.iframeDocument;
+            const img = doc.createElement('img');
+            img.src = imageUrl;
+            img.alt = altText;
+            img.style.maxWidth = '100%';
+            img.style.height = 'auto';
+            
+            // Try to insert at a reasonable location
+            const body = doc.body;
+            if (body) {
+                body.appendChild(img);
+                this.showNotification('Image added to website', 'success');
+            }
+        } catch (error) {
+            console.error('[ERROR] Failed to insert image:', error);
+            this.copyToClipboard(imageUrl);
+            this.showNotification('Image URL copied to clipboard', 'info');
+        }
+    }
+
+    // Copy text to clipboard utility
+    async copyToClipboard(text) {
+        try {
+            await navigator.clipboard.writeText(text);
+        } catch (error) {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+        }
     }
 
     // Loader Helper functions
@@ -279,6 +444,40 @@ class WebbyInterface {
         }
     }
 
+    setupIframeDropHandling() {
+    if (!this.state.iframeDocument) return;
+
+    const doc = this.state.iframeDocument;
+
+    doc.addEventListener("dragover", (e) => {
+        e.preventDefault();
+    });
+
+    doc.addEventListener("drop", (e) => {
+        e.preventDefault();
+
+        let imageUrl =
+            e.dataTransfer.getData("text/plain") ||
+            e.dataTransfer.getData("text/uri-list");
+
+        if (!imageUrl) return;
+
+        // ✅ If dropped on an existing <img>, replace its src
+        if (e.target.tagName === "IMG") {
+            e.target.src = imageUrl;
+            e.target.removeAttribute("contenteditable"); // optional: stop editing mode
+            console.log("Replaced image with Unsplash URL:", imageUrl);
+        } else {
+            // Otherwise, insert new image where dropped
+            const img = doc.createElement("img");
+            img.src = imageUrl;
+            img.style.maxWidth = "100%";
+            e.target.appendChild(img);
+        }
+    });
+}
+
+
     checkIframeAccessibility() {
         try {
             const doc = this.elements.resultFrame.contentDocument ||
@@ -287,6 +486,7 @@ class WebbyInterface {
             if (doc && doc.body) {
                 this.state.iframeAccessible = true;
                 this.state.iframeDocument = doc; // Store reference to iframe document
+                this.setupIframeDropHandling();
 
                 // Only make elements editable if edit mode is active
                 if (this.state.editModeActive) {
@@ -305,12 +505,12 @@ class WebbyInterface {
     }
 
     makeElementsEditable(doc) {
-        const elements = doc.querySelectorAll('h1, h2, h3, h4, h5, h6, p, a, span, div, button, li, img');
+        const elements = doc.querySelectorAll('h1, h2, h3, h4, h5, h6, p, a, span, div, button, li, img, article, section');
 
         elements.forEach(el => {
             el.setAttribute('contenteditable', 'true');
             el.style.outline = '1px dashed rgba(203, 108, 230, 0.5)';
-            el.style.cursor = 'text';
+            el.style.cursor = 'true';
 
             // Create event listener functions
             const mouseEnterHandler = () => {
@@ -419,6 +619,9 @@ class WebbyInterface {
                 this.state.iframeDocument = null;
                 this.state.editableElements.clear(); // Clear the map
 
+                // Clear iframe drop listeners
+                this.iframeDropListeners = null;
+
                 if (this.elements.toggleEdit) {
                     this.elements.toggleEdit.classList.remove('active');
                 }
@@ -430,7 +633,6 @@ class WebbyInterface {
                 this.showNotification('Error restarting session', 'error');
             });
     }
-
 
     handleResize() {
         if (this.elements.resultFrame) {
@@ -503,6 +705,83 @@ class WebbyInterface {
             [contenteditable="true"]:focus {
                 outline: 2px solid #cb6ce6 !important;
                 background: rgba(203, 108, 230, 0.05);
+            }
+
+            /* Image gallery styles */
+            .unsplash-image-container {
+                position: relative;
+                display: inline-block;
+                margin: 8px;
+                border-radius: 8px;
+                overflow: hidden;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                transition: transform 0.2s ease;
+            }
+
+            .unsplash-image-container:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            }
+
+            .unsplash-img {
+                width: 200px;
+                height: 150px;
+                object-fit: cover;
+                display: block;
+                cursor: pointer;
+            }
+
+            .image-overlay {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: linear-gradient(transparent, rgba(0,0,0,0.7));
+                color: white;
+                padding: 10px;
+                opacity: 0;
+                transition: opacity 0.2s ease;
+            }
+
+            .unsplash-image-container:hover .image-overlay {
+                opacity: 1;
+            }
+
+            .use-image-btn {
+                background: linear-gradient(135deg, #cb6ce6, #aa41c4);
+                color: white;
+                border: none;
+                padding: 6px 12px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 12px;
+                margin-bottom: 4px;
+                transition: background 0.2s ease;
+            }
+
+            .use-image-btn:hover {
+                background: linear-gradient(135deg, #aa41c4, #8e2de2);
+            }
+
+            .image-info small {
+                font-size: 10px;
+                opacity: 0.8;
+            }
+
+            .loading-images, .error-message, .no-results {
+                text-align: center;
+                padding: 20px;
+                color: #666;
+                font-style: italic;
+            }
+
+            #image-gallery {
+                max-height: 400px;
+                overflow-y: auto;
+                padding: 10px;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                background: #f9f9f9;
             }
         `;
 

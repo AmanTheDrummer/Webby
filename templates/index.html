@@ -67,7 +67,7 @@
     <main>
         <section class="main-section container-fluid p-0">
             <div class="row g-0 h-100">
-                <div class="col-lg-3 col-md-4">
+                <div class="col-lg-3 col-md-4 chat-panel">
                     <div class="dynamic-section">
                         <div class="section-header">
                             <span id="section-title">💬 Webby <span class="status-indicator"></span></span>
@@ -102,6 +102,12 @@
                             <!-- Edit Section (Dynamic Content Swapping 2)-->
                             <div id="EditSection" class="section-panel hidden">
                                 <div class="edit-tools">
+                                    <div class="unsplash-search p-1 d-flex align-items-center">
+                                        <input type="text" id="unsplash-query" class="form-control"
+                                            placeholder="Search images...">
+                                        <button id="edit-search-btn" class="btn btn-primary mt-2">Search</button>
+                                    </div>
+
                                     <div class="editor-toolbar" role="toolbar" aria-label="Edit">
                                         <button type="button" class="editor-tool active" id="imagesTool"
                                             data-tool="images" aria-pressed="true">Images</button>
@@ -119,6 +125,7 @@
                                         <!-- <p>Upload or select images to add to your website.</p>
                                         <input type="file" id="imageUpload" accept="image/*" multiple
                                             aria-label="Image upload"> -->
+                                        <div id="image-gallery" class="d-flex flex-wrap gap-2 mt-3"></div>
                                         <div id="imagePreview" class="image-preview">
 
                                         </div>
@@ -150,7 +157,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-9 col-md-8">
+
+                <div class="col-lg-9 col-md-8 preview-panel">
                     <!-- Preview Frame for generated -->
                     <div class="iframe-container">
                         <iframe src="/sitepreview/latest" id="resultFrame" class="preview-frame"
@@ -169,7 +177,7 @@
 
                         <a><img src="/static/assets/icons/add-image.svg" alt="add-image" type="button"
                                 class="tool-icons" id="editTool" title="Add Media" aria-label="Edit mode"
-                                data-section="edit" aria-pressed="false">g</a>
+                                data-section="edit" aria-pressed="false"></a>
 
                         <a><img src="/static/assets/icons/download.svg" alt="Download" type="button" class="tool-icons"
                                 title="Download preview" aria-label="Download"></a>
