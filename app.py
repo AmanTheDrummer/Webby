@@ -517,6 +517,17 @@ def download_site():
     except Exception as e:
         print(f"[ERROR] Failed to fetch for download: {e}")
         return "Internal server error", 500
+cur.execute("""
+    UPDATE websites
+    SET html_code = %s
+    WHERE id = (
+        SELECT id FROM websites
+        WHERE user_id = %s
+        ORDER BY created_at DESC
+        LIMIT 1
+    )
+""", (updated_html, user_id))
+
 # run the main app
 if __name__ == "__main__":
     print("[INFO] Starting Flask app...")
