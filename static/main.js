@@ -818,6 +818,35 @@ class WebbyInterface {
             }
         }
     }
+    saveChangesBtn() {
+        const saveBtn = document.getElementById('saveChangesBtn');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => {
+                if (this.state.iframeAccessible && this.state.iframeDocument) {
+                    // ✅ Extract updated HTML from iframe
+                    const updatedHTML = this.state.iframeDocument.documentElement.outerHTML;
+    
+                    // Send to backend
+                    fetch('/save_changes', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ html: updatedHTML })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        console.log('[INFO] Changes saved:', data);
+                        this.showNotification("Changes saved successfully!", 'success');
+                    })
+                    .catch(err => {
+                        console.error('[ERROR] Failed to save changes:', err);
+                        this.showNotification("Failed to save changes", 'error');
+                    });
+                } else {
+                    this.showNotification("No website loaded to save", 'warning');
+                }
+            });
+        }
+    }
 }
 
 // File Upload Manager Class
