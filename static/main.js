@@ -35,7 +35,7 @@ class WebbyInterface {
             loaderSpinner: document.querySelector('.loader'),
             editSearchButton: document.getElementById('edit-search-btn'),
             queryInput: document.getElementById('unsplash-query'),
-            imageGallery: document.getElementById('image-gallery')
+            imageGallery: document.getElementById('image-gallery'),
         };
 
         // Validate critical elements
@@ -499,11 +499,13 @@ class WebbyInterface {
             } else {
                 throw new Error('Cannot access document body');
             }
+        
         } catch (error) {
             console.log('[WARNING] Cannot access iframe content:', error.message);
             this.state.iframeAccessible = false;
             this.showNotification('Direct editing not available (cross-origin)', 'warning');
         }
+        
     }
 
     makeElementsEditable(doc) {
@@ -559,7 +561,7 @@ class WebbyInterface {
 
         this.showNotification('Elements are no longer editable', 'info');
     }
-
+        
     // Toggle edit mode functionality
     toggleEditMode() {
         if (this.elements.toggleEdit) {
@@ -848,6 +850,7 @@ class WebbyInterface {
             });
         }
     }
+    
 }
 
 // File Upload Manager Class
@@ -946,13 +949,14 @@ class FileUploadManager {
         container.appendChild(previewDiv);
     }
 }
+
+
 document.addEventListener('DOMContentLoaded', () => {
     const downloadBtn = document.getElementById('downloadBtn');
     if (downloadBtn) {
         downloadBtn.addEventListener('click', () => {
             console.log('[INFO] Download button clicked');
             window.location.href = '/download';
-            
         });
     }
 });
@@ -982,6 +986,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
 // Initialize the application
 let webbyApp;
 let fileUploadManager;
