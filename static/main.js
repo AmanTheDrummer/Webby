@@ -56,6 +56,7 @@ class WebbyInterface {
         this.appendWelcomeMessage();
         this.injectStyles();
         this.toggleEditMode();
+        this.saveChangesBtn();
         this.setupImageSearch(); // Fixed: properly call image search setup
     }
 
