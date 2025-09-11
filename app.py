@@ -5,7 +5,7 @@ import requests
 import psycopg2
 import uuid
 from flask import Response
-
+import sqlite3
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -517,7 +517,25 @@ def download_site():
     except Exception as e:
         print(f"[ERROR] Failed to fetch for download: {e}")
         return "Internal server error", 500
-cur.execute("""
+#savechanges
+@app.route('/save_changes', methods=['POST'])
+def save_changes():
+    if 'user_id' not in session:
+        return jsonify({"status": "error", "message": "Unauthorized"}), 401
+
+    data = request.get_json()
+    updated_html = data.get("html")
+    user_id = session['user_id']
+
+    if not updated_html:
+        return jsonify({"status": "error", "message": "No HTML provided"}), 400
+
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        # ✅ Update the most recent site for this user
+        cur.execute("""
     UPDATE websites
     SET html_code = %s
     WHERE id = (
@@ -527,7 +545,14 @@ cur.execute("""
         LIMIT 1
     )
 """, (updated_html, user_id))
+        conn.commit()
+        cur.close()
+        conn.close()
 
+        return jsonify({"status": "success", "message": "Changes saved"})
+    except Exception as e:
+        print(f"[ERROR] Failed to save changes: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 # run the main app
 if __name__ == "__main__":
     print("[INFO] Starting Flask app...")
