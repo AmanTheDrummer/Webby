@@ -33,9 +33,12 @@ class WebbyInterface {
             sectionTitle: document.getElementById('section-title'),
             toggleEdit: document.getElementById('toggleEditBtn'),
             loaderSpinner: document.querySelector('.loader'),
-            editSearchButton: document.getElementById('edit-search-btn'),
-            queryInput: document.getElementById('unsplash-query'),
+            editImageSearchButton: document.getElementById('edit-image-search-btn'),
+            editVideoSearchButton: document.getElementById('edit-video-search-btn'),
+            imageQueryInput: document.getElementById('images-query'),
+            videoQueryInput: document.getElementById('video-query'),
             imageGallery: document.getElementById('image-gallery'),
+            videoGallery: document.getElementById('video-gallery')
         };
 
         // Validate critical elements
@@ -57,41 +60,209 @@ class WebbyInterface {
         this.injectStyles();
         this.toggleEditMode();
         this.saveChangesBtn();
-        this.setupImageSearch(); // Fixed: properly call image search setup
+        this.setupImageSearch();
+        this.setupVideoSearch();
+        this.setupEditSectionSwitching(); // Add this line
+    }
+
+    setupEditSectionSwitching() {
+        // Get all editor tool buttons
+        const editorTools = document.querySelectorAll('.editor-tool');
+        const editSections = document.querySelectorAll('.edit-section');
+        
+        if (editorTools.length === 0) {
+            console.warn('[WARN] Editor tool buttons not found');
+            return;
+        }
+
+        editorTools.forEach(tool => {
+            tool.addEventListener('click', (e) => {
+                const targetTool = e.target.dataset.tool;
+                this.switchEditSubsection(targetTool, editorTools, editSections);
+            });
+        });
+        
+        console.log('[INFO] Edit section switching setup completed');
+    }
+
+    switchEditSubsection(targetSubsection, toolButtons, sections) {
+        console.log(`[INFO] Switching to ${targetSubsection} section`);
+        
+        // Remove active class from all tools and sections
+        toolButtons.forEach(btn => {
+            btn.classList.remove('active');
+            btn.setAttribute('aria-pressed', 'false');
+        });
+        
+        sections.forEach(section => {
+            section.classList.remove('active');
+            section.classList.add('hidden');
+        });
+
+        // Activate the selected tool and section
+        const activeButton = document.querySelector(`[data-tool="${targetSubsection}"]`);
+        const activeSection = document.getElementById(`${targetSubsection}Section`);
+        
+        if (activeButton && activeSection) {
+            activeButton.classList.add('active');
+            activeButton.setAttribute('aria-pressed', 'true');
+            activeSection.classList.remove('hidden');
+            activeSection.classList.add('active');
+            
+            // Update state
+            this.state.currentEditSubsection = targetSubsection;
+            
+            console.log(`[INFO] Successfully switched to ${targetSubsection} section`);
+            
+            // Focus on the appropriate input field
+            setTimeout(() => {
+                let queryInput;
+                if (targetSubsection === 'images') {
+                    queryInput = this.elements.imageQueryInput;
+                } else if (targetSubsection === 'videos') {
+                    queryInput = this.elements.videoQueryInput;
+                } else {
+                    queryInput = document.getElementById(`${targetSubsection}-query`);
+                }
+                
+                if (queryInput) {
+                    queryInput.focus();
+                    console.log(`[INFO] Focused on ${targetSubsection} input`);
+                }
+            }, 100);
+            
+        } else {
+            console.error(`[ERROR] Could not find elements for ${targetSubsection}`);
+        }
+    }
+
+    setupSearchForSection(sectionType) {
+        console.log(`[INFO] Section switched to ${sectionType} - using dedicated buttons`);
+        // This method can now be much simpler or removed entirely
+        // since each section has its own dedicated button
+    }
+
+    setupEnterKeyListeners() {
+        // Remove existing listeners by cloning inputs
+        if (this.elements.imageQueryInput) {
+            const newImageInput = this.elements.imageQueryInput.cloneNode(true);
+            this.elements.imageQueryInput.parentNode.replaceChild(newImageInput, this.elements.imageQueryInput);
+            this.elements.imageQueryInput = newImageInput;
+            
+            newImageInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (this.state.currentEditSubsection === 'images') {
+                        this.handleImageSearch();
+                    }
+                }
+            });
+        }
+
+        if (this.elements.videoQueryInput) {
+            const newVideoInput = this.elements.videoQueryInput.cloneNode(true);
+            this.elements.videoQueryInput.parentNode.replaceChild(newVideoInput, this.elements.videoQueryInput);
+            this.elements.videoQueryInput = newVideoInput;
+            
+            newVideoInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (this.state.currentEditSubsection === 'videos') {
+                        this.handleVideoSearch();
+                    }
+                }
+            });
+        }
     }
 
     // Fixed Image Search Setup
     setupImageSearch() {
-        if (this.elements.editSearchButton && this.elements.queryInput && this.elements.imageGallery) {
-            this.elements.editSearchButton.addEventListener('click', () => {
+        if (this.elements.editImageSearchButton && this.elements.imageQueryInput && this.elements.imageGallery) {
+            this.elements.editImageSearchButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('[DEBUG] Image search button clicked');
                 this.handleImageSearch();
             });
 
             // Allow Enter key to trigger search
-            this.elements.queryInput.addEventListener('keydown', (e) => {
+            this.elements.imageQueryInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
+                    console.log('[DEBUG] Enter pressed in image input');
                     this.handleImageSearch();
                 }
             });
+            
+            console.log('[INFO] Image search setup completed');
         } else {
             console.warn('[WARN] Image search elements not found');
+            console.warn('- editImageSearchButton:', !!this.elements.editImageSearchButton);
+            console.warn('- imageQueryInput:', !!this.elements.imageQueryInput);
+            console.warn('- imageGallery:', !!this.elements.imageGallery);
+        }
+    }
+
+    setupVideoSearch() {
+        if (this.elements.editVideoSearchButton && this.elements.videoQueryInput && this.elements.videoGallery) {
+            this.elements.editVideoSearchButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('[DEBUG] Video search button clicked');
+                this.handleVideoSearch();
+            });
+
+            // Allow Enter key to trigger search
+            this.elements.videoQueryInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    console.log('[DEBUG] Enter pressed in video input');
+                    this.handleVideoSearch();
+                }
+            });
+            
+            console.log('[INFO] Video search setup completed');
+        } else {
+            console.warn('[WARN] Video search elements not found');
+            console.warn('- editVideoSearchButton:', !!this.elements.editVideoSearchButton);
+            console.warn('- videoQueryInput:', !!this.elements.videoQueryInput);
+            console.warn('- videoGallery:', !!this.elements.videoGallery);
         }
     }
 
     // Fixed Image Search Handler
     async handleImageSearch() {
-        const query = this.elements.queryInput.value.trim();
+        console.log('[DEBUG] =================================');
+        console.log('[DEBUG] handleImageSearch called');
+        console.log('[DEBUG] Image input element:', this.elements.imageQueryInput);
+        
+        if (!this.elements.imageQueryInput) {
+            console.error('[ERROR] Image input element not found');
+            this.showNotification('Image search input not found', 'error');
+            return;
+        }
+        
+        const query = this.elements.imageQueryInput.value.trim();
+        console.log('[DEBUG] Image search query:', `"${query}"`);
+        console.log('[DEBUG] Query length:', query.length);
+        console.log('[DEBUG] =================================');
+        
         if (!query) {
+            console.warn('[WARN] Empty query for image search');
             this.showNotification('Please enter a search term', 'warning');
+            this.elements.imageQueryInput.focus();
             return;
         }
 
         try {
+            console.log('[INFO] Starting image search...');
+            
             // Show loading state
-            this.elements.imageGallery.innerHTML = '<div class="loading-images">Searching for images...</div>';
+            if (this.elements.imageGallery) {
+                this.elements.imageGallery.innerHTML = '<div class="loading-images">Searching for images...</div>';
+            }
             
             const results = await this.searchUnsplashImages(query);
+            console.log(`[INFO] Got ${results.length} image results`);
+            
             this.displayImageResults(results);
             
             if (results.length > 0) {
@@ -102,9 +273,62 @@ class WebbyInterface {
         } catch (error) {
             console.error('[ERROR] Image search failed:', error);
             this.showNotification('Failed to search images', 'error');
-            this.elements.imageGallery.innerHTML = '<div class="error-message">Failed to load images</div>';
+            if (this.elements.imageGallery) {
+                this.elements.imageGallery.innerHTML = '<div class="error-message">Failed to load images</div>';
+            }
         }
     }
+
+    async handleVideoSearch() {
+        console.log('[DEBUG] =================================');
+        console.log('[DEBUG] handleVideoSearch called');
+        console.log('[DEBUG] Video input element:', this.elements.videoQueryInput);
+        
+        if (!this.elements.videoQueryInput) {
+            console.error('[ERROR] Video input element not found');
+            this.showNotification('Video search input not found', 'error');
+            return;
+        }
+        
+        const query = this.elements.videoQueryInput.value.trim();
+        console.log('[DEBUG] Video search query:', `"${query}"`);
+        console.log('[DEBUG] Query length:', query.length);
+        console.log('[DEBUG] =================================');
+        
+        if (!query) {
+            console.warn('[WARN] Empty query for video search');
+            this.showNotification('Please enter a search term', 'warning');
+            this.elements.videoQueryInput.focus();
+            return;
+        }
+
+        try {
+            console.log('[INFO] Starting video search...');
+            
+            // Show loading state
+            if (this.elements.videoGallery) {
+                this.elements.videoGallery.innerHTML = '<div class="loading-videos">Searching for videos...</div>';
+            }
+
+            const results = await this.searchPexelsVideos(query);
+            console.log(`[INFO] Got ${results.length} video results`);
+            
+            this.displayVideoResults(results);
+
+            if (results.length > 0) {
+                this.showNotification(`Found ${results.length} videos`, 'success');
+            } else {
+                this.showNotification('No videos found for this search', 'info');
+            }
+        } catch (error) {
+            console.error('[ERROR] Video search failed:', error);
+            this.showNotification('Failed to search videos', 'error');
+            if (this.elements.videoGallery) {
+                this.elements.videoGallery.innerHTML = '<div class="error-message">Failed to load videos</div>';
+            }
+        }
+    }
+
 
     // Fixed Unsplash API call
     async searchUnsplashImages(query) {
@@ -119,6 +343,23 @@ class WebbyInterface {
             return data.results || [];
         } catch (error) {
             console.error('[ERROR] Unsplash API call failed:', error);
+            throw error;
+        }
+    }
+
+    async searchPexelsVideos(query) {
+        try {
+            // Fixed: changed /apu/pexels to /api/pexels
+            const response = await fetch(`/api/pexels?q=${encodeURIComponent(query)}&per_page=12`);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.results || [];
+        } catch (error) {
+            console.error('[ERROR] Pexels API call failed:', error);
             throw error;
         }
     }
@@ -170,6 +411,61 @@ class WebbyInterface {
         });
     }
 
+    displayVideoResults(videos) {
+        if (!this.elements.videoGallery) {
+            console.error('[ERROR] Video gallery element not found');
+            return;
+        }
+
+        this.elements.videoGallery.innerHTML = '';
+
+        if (videos.length === 0) {
+            this.elements.videoGallery.innerHTML = '<div class="no-results">No videos found</div>';
+            return;
+        }    
+
+        videos.forEach(video => {
+            const videoElement = document.createElement('div');
+            videoElement.className = 'pexels-video-container';
+
+            // Fixed: <vdieo> to <video> and added controls
+            videoElement.innerHTML = `
+                <video controls muted 
+                    style="width: 200px; height: 150px; object-fit: cover; border-radius: 8px;"
+                    class="pexels-video"
+                    draggable="true"
+                    data-full-url="${video.urls.full}"
+                    data-regular-url="${video.urls.regular}">
+                    <source src="${video.urls.small}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                <div class="video-overlay">
+                    <button class="use-video-btn" data-url="${video.urls.regular}">Use Video</button>
+                    <div class="video-info">
+                        <small>Video by ${video.user.name}</small>
+                    </div>
+                </div>
+            `;
+
+            // Add drag and drop functionality
+            const videoEl = videoElement.querySelector('video');
+            if (videoEl) {
+                videoEl.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', video.urls.regular);
+                    e.dataTransfer.setData('text/uri-list', video.urls.regular);
+                });
+            }
+
+            // Add click to use functionality - Fixed method name
+            const useBtn = videoElement.querySelector('.use-video-btn');
+            useBtn.addEventListener('click', () => {
+                this.useVideo(video.urls.regular, video.alt_description || 'Selected video');
+            });
+
+            this.elements.videoGallery.appendChild(videoElement);
+        });
+    }
+
     // Handle using selected image
     useImage(imageUrl, altText) {
         // If iframe is accessible and edit mode is active, try to insert image
@@ -179,6 +475,17 @@ class WebbyInterface {
             // Copy URL to clipboard as fallback
             this.copyToClipboard(imageUrl);
             this.showNotification('Image URL copied to clipboard', 'success');
+        }
+    }
+
+    useVideo(videoUrl, altText) {
+        // If iframe is accessible and edit mode is active, try to insert video
+        if (this.state.iframeAccessible && this.state.iframeDocument && this.state.editModeActive) {
+            this.insertVideoIntoIframe(videoUrl, altText);
+        } else {
+            // Copy URL to clipboard as fallback
+            this.copyToClipboard(videoUrl);
+            this.showNotification('Video URL copied to clipboard', 'success');
         }
     }
 
@@ -202,6 +509,29 @@ class WebbyInterface {
             console.error('[ERROR] Failed to insert image:', error);
             this.copyToClipboard(imageUrl);
             this.showNotification('Image URL copied to clipboard', 'info');
+        }
+    }
+
+    insertVideoIntoIframe(videoUrl, altText) {
+        try {
+            const doc = this.state.iframeDocument;
+            const video = doc.createElement('video'); // Fixed: was 'img'
+            video.src = videoUrl;
+            video.controls = true;
+            video.muted = true;
+            video.style.maxWidth = '100%';
+            video.style.height = 'auto';
+
+            // Try to insert at a reasonable location
+            const body = doc.body;
+            if (body) {
+                body.appendChild(video);
+                this.showNotification('Video added to website', 'success');
+            }
+        } catch (error) {
+            console.error('[ERROR] Failed to insert video:', error);
+            this.copyToClipboard(videoUrl);
+            this.showNotification('Video URL copied to clipboard', 'info');
         }
     }
 
@@ -433,6 +763,8 @@ class WebbyInterface {
         this.state.currentSection = sectionType;
     }
 
+
+
     // Iframe handling
     setupIframeHandling() {
         if (this.elements.resultFrame) {
@@ -447,39 +779,37 @@ class WebbyInterface {
     }
 
     setupIframeDropHandling() {
-    if (!this.state.iframeDocument) return;
+        if (!this.state.iframeDocument) return;
 
-    const doc = this.state.iframeDocument;
+        const doc = this.state.iframeDocument;
 
-    doc.addEventListener("dragover", (e) => {
-        e.preventDefault();
-    });
+        doc.addEventListener("dragover", (e) => {
+            e.preventDefault();
+        });
 
-    doc.addEventListener("drop", (e) => {
-        e.preventDefault();
+        doc.addEventListener("drop", (e) => {
+            e.preventDefault();
 
-        let imageUrl =
-            e.dataTransfer.getData("text/plain") ||
-            e.dataTransfer.getData("text/uri-list");
+            let imageUrl =
+                e.dataTransfer.getData("text/plain") ||
+                e.dataTransfer.getData("text/uri-list");
 
-        if (!imageUrl) return;
+            if (!imageUrl) return;
 
-        // ✅ If dropped on an existing <img>, replace its src
-        if (e.target.tagName === "IMG") {
-            e.target.src = imageUrl;
-            e.target.removeAttribute("contenteditable"); // optional: stop editing mode
-            console.log("Replaced image with Unsplash URL:", imageUrl);
-        } else {
-            // Otherwise, insert new image where dropped
-            const img = doc.createElement("img");
-            img.src = imageUrl;
-            img.style.maxWidth = "100%";
-            e.target.appendChild(img);
-        }
-    });
-}
-
-
+            // ✅ If dropped on an existing <img>, replace its src
+            if (e.target.tagName === "IMG") {
+                e.target.src = imageUrl;
+                e.target.removeAttribute("contenteditable"); // optional: stop editing mode
+                console.log("Replaced image with Unsplash URL:", imageUrl);
+            } else {
+                // Otherwise, insert new image where dropped
+                const img = doc.createElement("img");
+                img.src = imageUrl;
+                img.style.maxWidth = "100%";
+                e.target.appendChild(img);
+            }
+        });
+    }
     checkIframeAccessibility() {
         try {
             const doc = this.elements.resultFrame.contentDocument ||
@@ -509,7 +839,7 @@ class WebbyInterface {
     }
 
     makeElementsEditable(doc) {
-        const elements = doc.querySelectorAll('h1, h2, h3, h4, h5, h6, p, a, span, div, button, li, img, article, section');
+        const elements = doc.querySelectorAll('h1, h2, h3, h4, h5, h6, p, a, span, div, button, li, img, article, section, video');
 
         elements.forEach(el => {
             el.setAttribute('contenteditable', 'true');

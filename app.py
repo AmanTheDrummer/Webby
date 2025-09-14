@@ -22,6 +22,7 @@ QUESTIONS = [
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 UNSPLASH_KEY = os.environ.get("UNSPLASH_KEY")
+PEXELS_KEY = os.environ.get("PEXELS_KEY")
 
 # Database connection function - creates fresh connection each time
 def get_db_connection():
@@ -51,6 +52,7 @@ def generate_custom_prompt_with_ai(answers):
         f"Color scheme: {answers['color_scheme']}\n"
         f"Type: {answers['site_type']}\n"
         f"Vibe: {answers['vibe']}\n"
+        f"Have at least one video in the website"
         f"Include design style, layout techniques, animations, and trends.\n"
         f"Keep the entire prompt under {MAX_PROMPT_LENGTH} characters.\n"
         "Output ONLY the generated prompt, no explanations."
@@ -332,6 +334,81 @@ def unsplash_search():
     res = requests.get(url, params=params)
     return jsonify(res.json())
 
+# Interact with Pexels API to search for videos
+@app.route("/api/pexels")
+def pexels_search():
+    try:
+        query = request.args.get("q", "").strip()
+        per_page = min(int(request.args.get("per_page", 12)), 80)  # Pexels max is 80
+        
+        if not query:
+            return jsonify({"error": "Query parameter is required"}), 400
+        
+        if not PEXELS_KEY:
+            return jsonify({"error": "Pexels API key not configured"}), 500
+            
+        # Pexels Videos API endpoint
+        url = "https://api.pexels.com/videos/search"
+        
+        headers = {
+            "Authorization": PEXELS_KEY  # Pexels uses Authorization header
+        }
+        
+        params = {
+            "query": query,
+            "per_page": per_page,
+            "orientation": "all"  # Optional: landscape, portrait, square, all
+        }
+        
+        response = requests.get(url, headers=headers, params=params, timeout=10)
+        
+        if response.status_code == 200:
+            data = response.json()
+            
+            # Transform the data to match your frontend expectations
+            transformed_data = {
+                "results": []
+            }
+            
+            for video in data.get("videos", []):
+                # Get the first video file (usually the smallest/preview)
+                video_files = video.get("video_files", [])
+                if video_files:
+                    # Sort by file size to get a reasonable preview size
+                    preview_video = min(video_files, key=lambda x: x.get("width", 0))
+                    
+                    transformed_data["results"].append({
+                        "id": video["id"],
+                        "urls": {
+                            "small": preview_video["link"],
+                            "regular": preview_video["link"],
+                            "full": video_files[0]["link"]  # Highest quality
+                        },
+                        "alt_description": f"Video by {video['user']['name']}",
+                        "user": {
+                            "name": video["user"]["name"]
+                        },
+                        "width": preview_video.get("width"),
+                        "height": preview_video.get("height"),
+                        "duration": video.get("duration")
+                    })
+            
+            return jsonify(transformed_data)
+            
+        elif response.status_code == 429:
+            return jsonify({"error": "Rate limit exceeded"}), 429
+        else:
+            return jsonify({"error": f"Pexels API error: {response.status_code}"}), response.status_code
+            
+    except ValueError:
+        return jsonify({"error": "Invalid per_page parameter"}), 400
+    except requests.exceptions.Timeout:
+        return jsonify({"error": "Request timeout"}), 504
+    except requests.exceptions.RequestException as e:
+        return jsonify({"error": f"Request failed: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+    
 # Serve the generated website from the database by ID
 @app.route('/sitepreview/<int:site_id>', methods=['GET'])
 def site_preview(site_id):
@@ -517,6 +594,7 @@ def download_site():
     except Exception as e:
         print(f"[ERROR] Failed to fetch for download: {e}")
         return "Internal server error", 500
+    
 #savechanges
 @app.route('/save_changes', methods=['POST'])
 def save_changes():
@@ -553,6 +631,7 @@ def save_changes():
     except Exception as e:
         print(f"[ERROR] Failed to save changes: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
+    
 # run the main app
 if __name__ == "__main__":
     print("[INFO] Starting Flask app...")
